@@ -1,0 +1,2141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizExpense Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #0D0D2B; /* Deep Space Blue */
+            --secondary-color: #1E1E3F; /* Darker Purple Blue */
+            --accent-color: #4A90E2; /* Bright Blue */
+            --highlight-color: #50E3C2; /* Aqua Green */
+            --text-color: #E0E0E0; /* Light Gray */
+            --text-muted-color: #A0A0A0; /* Medium Gray */
+            --danger-color: #FF4136;
+            --success-color: #2ECC40;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --border-radius: 8px;
+            --input-bg: #2A2A4D;
+            --card-bg: var(--secondary-color);
+            --hover-bg: #303058;
+            --modal-bg: rgba(13, 13, 43, 0.95);
+        }
+
+        [data-theme="light"] {
+            --primary-color: #F4F7FC;
+            --secondary-color: #FFFFFF;
+            --accent-color: #007BFF;
+            --highlight-color: #17A2B8;
+            --text-color: #212529;
+            --text-muted-color: #6C757D;
+            --input-bg: #FFFFFF;
+            --card-bg: #FFFFFF;
+            --hover-bg: #E9ECEF;
+            --modal-bg: rgba(244, 247, 252, 0.95);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        header {
+            background-color: var(--secondary-color);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            color: var(--highlight-color);
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+        }
+
+        nav ul li a {
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            margin-left: 0.5rem;
+            border-radius: var(--border-radius);
+            transition: background-color 0.3s, color 0.3s;
+            font-weight: 500;
+        }
+
+        nav ul li a:hover, nav ul li a.active {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+        }
+        [data-theme="light"] nav ul li a:hover, [data-theme="light"] nav ul li a.active {
+            color: white;
+        }
+
+
+        .theme-switcher {
+            cursor: pointer;
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-color);
+        }
+
+        main {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted-color);
+            font-weight: 500;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group input[type="file"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--accent-color);
+            border-radius: var(--border-radius);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--highlight-color);
+            box-shadow: 0 0 0 2px var(--highlight-color_alpha, rgba(80, 227, 194, 0.3));
+        }
+        [data-theme="light"] .form-group input[type="text"],
+        [data-theme="light"] .form-group input[type="number"],
+        [data-theme="light"] .form-group input[type="date"],
+        [data-theme="light"] .form-group input[type="file"],
+        [data-theme="light"] .form-group select,
+        [data-theme="light"] .form-group textarea {
+            border-color: #CED4DA;
+        }
+
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group input[type="checkbox"] {
+            margin-right: 0.5rem;
+            accent-color: var(--accent-color);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s, transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+        }
+        [data-theme="light"] .btn-primary {
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: var(--highlight-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: var(--text-muted-color);
+            color: var(--primary-color);
+        }
+        [data-theme="light"] .btn-secondary {
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #808080;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #E74C3C;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #27AE60;
+            transform: translateY(-2px);
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.875rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--hover-bg);
+        }
+
+        th {
+            background-color: var(--secondary-color);
+            color: var(--highlight-color);
+            font-weight: 600;
+        }
+        [data-theme="light"] th {
+            background-color: #E9ECEF;
+        }
+
+        tr:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: var(--modal-bg);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: auto;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        .close-btn {
+            color: var(--text-muted-color);
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover {
+            color: var(--danger-color);
+        }
+
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .filter-controls > * {
+            flex-grow: 1;
+            min-width: 150px;
+        }
+
+        .chart-container {
+            width: 100%;
+            max-width: 700px;
+            margin: 1rem auto;
+            background-color: var(--card-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+        }
+
+        .receipt-preview {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+        
+        .dashboard-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background-color: var(--secondary-color);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+        .summary-card h3 {
+            color: var(--highlight-color);
+            margin-bottom: 0.5rem;
+        }
+        .summary-card p {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-muted-color);
+            font-size: 1rem;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-button.active {
+            color: var(--highlight-color);
+            border-bottom-color: var(--highlight-color);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            header h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+            nav ul {
+                flex-direction: column;
+                width: 100%;
+            }
+            nav ul li {
+                margin-bottom: 0.5rem;
+            }
+            nav ul li a {
+                display: block;
+                text-align: center;
+                margin-left: 0;
+            }
+            .filter-controls {
+                flex-direction: column;
+            }
+            .dashboard-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+        .hidden { display: none !important; }
+        .text-danger { color: var(--danger-color); }
+        .text-success { color: var(--success-color); }
+        .text-bold { font-weight: bold; }
+    </style>
+</head>
+<body data-theme="dark">
+    <div id="app">
+        <header>
+            <h1>BizExpense Tracker</h1>
+            <nav>
+                <ul>
+                    <li><a href="#" class="nav-link active" data-page="dashboard">Dashboard</a></li>
+                    <li><a href="#" class="nav-link" data-page="transactions">Transactions</a></li>
+                    <li><a href="#" class="nav-link" data-page="reports">Reports</a></li>
+                    <li><a href="#" class="nav-link" data-page="recurring">Recurring</a></li>
+                    <li><a href="#" class="nav-link" data-page="settings">Settings</a></li>
+                </ul>
+            </nav>
+            <button class="theme-switcher" id="themeSwitcher" aria-label="Toggle theme">🌙</button>
+        </header>
+
+        <main>
+            <!-- Dashboard Page -->
+            <section id="dashboard" class="page active">
+                <h2>Dashboard</h2>
+                <div class="dashboard-summary">
+                    <div class="summary-card">
+                        <h3>Total Income (This Month)</h3>
+                        <p id="summaryTotalIncome">$0.00</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Total Expenses (This Month)</h3>
+                        <p id="summaryTotalExpenses">$0.00</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Net Balance (This Month)</h3>
+                        <p id="summaryNetBalance">$0.00</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Quick Actions</h3>
+                    <button class="btn btn-primary" id="quickAddExpenseBtn">Add Expense</button>
+                    <button class="btn btn-success" id="quickAddIncomeBtn">Add Income</button>
+                </div>
+                <div class="card">
+                    <h3>Recent Transactions</h3>
+                    <div id="recentTransactionsList" class="table-container">
+                        <p>No recent transactions.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transactions Page -->
+            <section id="transactions" class="page">
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="addTransactionTab">Add Transaction</button>
+                    <button class="tab-button" data-tab="viewTransactionsTab">View Transactions</button>
+                </div>
+
+                <div id="addTransactionTab" class="tab-content active">
+                    <div class="card">
+                        <h2 id="transactionFormTitle">Add New Transaction</h2>
+                        <form id="transactionForm">
+                            <input type="hidden" id="transactionId">
+                            <div class="form-group">
+                                <label for="transactionType">Type</label>
+                                <select id="transactionType" required>
+                                    <option value="expense">Expense</option>
+                                    <option value="income">Income</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="transactionDate">Date</label>
+                                <input type="date" id="transactionDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="transactionCategory">Category</label>
+                                <select id="transactionCategory" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="transactionAmount">Amount</label>
+                                <input type="number" id="transactionAmount" step="0.01" min="0" required>
+                            </div>
+                            <div class="form-group" id="vendorField">
+                                <label for="transactionVendor">Vendor</label>
+                                <input type="text" id="transactionVendor">
+                            </div>
+                            <div class="form-group hidden" id="clientField">
+                                <label for="transactionClient">Client/Source</label>
+                                <input type="text" id="transactionClient">
+                            </div>
+                            <div class="form-group">
+                                <label for="transactionDescription">Description</label>
+                                <textarea id="transactionDescription"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="transactionPaymentMethod">Payment Method</label>
+                                <select id="transactionPaymentMethod" required></select>
+                            </div>
+                            <div class="form-group" id="reimbursableField">
+                                <label>
+                                    <input type="checkbox" id="transactionReimbursable"> Reimbursable
+                                </label>
+                            </div>
+                            <div class="form-group" id="billedToClientField">
+                                <label>
+                                    <input type="checkbox" id="transactionBilledToClient"> Billed to Client
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label for="transactionReceipt">Receipt Image (Optional)</label>
+                                <input type="file" id="transactionReceipt" accept="image/*">
+                                <img id="receiptPreview" class="receipt-preview hidden" alt="Receipt Preview">
+                                <input type="hidden" id="existingReceiptData">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Transaction</button>
+                            <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display:none;">Cancel Edit</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="viewTransactionsTab" class="tab-content">
+                    <h2>All Transactions</h2>
+                    <div class="card">
+                        <div class="filter-controls">
+                            <input type="text" id="searchKeyword" placeholder="Search keyword...">
+                            <select id="filterType">
+                                <option value="">All Types</option>
+                                <option value="expense">Expense</option>
+                                <option value="income">Income</option>
+                            </select>
+                            <select id="filterCategory"><option value="">All Categories</option></select>
+                            <input type="date" id="filterStartDate" placeholder="Start Date">
+                            <input type="date" id="filterEndDate" placeholder="End Date">
+                            <button id="applyFiltersBtn" class="btn btn-primary btn-sm">Apply Filters</button>
+                            <button id="resetFiltersBtn" class="btn btn-secondary btn-sm">Reset Filters</button>
+                        </div>
+                        <div class="table-container" id="transactionsListContainer">
+                            <p>No transactions found.</p>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <button id="exportCSVBtn" class="btn btn-secondary btn-sm">Export CSV</button>
+                            <button id="exportJSONBtn" class="btn btn-secondary btn-sm">Export JSON</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports Page -->
+            <section id="reports" class="page">
+                <h2>Reports</h2>
+                <div class="card">
+                    <div class="filter-controls">
+                        <select id="reportType">
+                            <option value="categorySummary">Summary by Category</option>
+                            <option value="periodSummary">Summary by Period</option>
+                            <option value="incomeVsExpense">Income vs. Expense</option>
+                        </select>
+                        <select id="reportPeriod">
+                            <option value="currentMonth">Current Month</option>
+                            <option value="lastMonth">Last Month</option>
+                            <option value="currentYear">Current Year</option>
+                            <option value="allTime">All Time</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                        <div id="customDateRangeReport" class="hidden" style="display:flex; gap:1rem;">
+                            <input type="date" id="reportStartDate">
+                            <input type="date" id="reportEndDate">
+                        </div>
+                        <button id="generateReportBtn" class="btn btn-primary">Generate Report</button>
+                    </div>
+                    <div id="reportOutput">
+                        <div class="chart-container">
+                            <canvas id="reportChart"></canvas>
+                        </div>
+                        <div id="reportTableContainer" class="table-container"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recurring Page -->
+            <section id="recurring" class="page">
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="addRecurringTab">Add Recurring Template</button>
+                    <button class="tab-button" data-tab="viewRecurringTab">View Recurring Templates</button>
+                </div>
+
+                <div id="addRecurringTab" class="tab-content active">
+                    <div class="card">
+                        <h2 id="recurringFormTitle">Add New Recurring Template</h2>
+                        <form id="recurringForm">
+                            <input type="hidden" id="recurringId">
+                            <div class="form-group">
+                                <label for="recurringType">Type</label>
+                                <select id="recurringType" required>
+                                    <option value="expense">Expense</option>
+                                    <option value="income">Income</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="recurringCategory">Category</label>
+                                <select id="recurringCategory" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="recurringAmount">Amount</label>
+                                <input type="number" id="recurringAmount" step="0.01" min="0" required>
+                            </div>
+                            <div class="form-group" id="recurringVendorField">
+                                <label for="recurringVendor">Vendor</label>
+                                <input type="text" id="recurringVendor">
+                            </div>
+                            <div class="form-group hidden" id="recurringClientField">
+                                <label for="recurringClient">Client/Source</label>
+                                <input type="text" id="recurringClient">
+                            </div>
+                            <div class="form-group">
+                                <label for="recurringDescription">Description</label>
+                                <textarea id="recurringDescription"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="recurringPaymentMethod">Payment Method</label>
+                                <select id="recurringPaymentMethod" required></select>
+                            </div>
+                            <div class="form-group" id="recurringReimbursableField">
+                                <label><input type="checkbox" id="recurringReimbursable"> Reimbursable</label>
+                            </div>
+                            <div class="form-group" id="recurringBilledToClientField">
+                                <label><input type="checkbox" id="recurringBilledToClient"> Billed to Client</label>
+                            </div>
+                            <div class="form-group">
+                                <label for="recurringFrequency">Frequency</label>
+                                <select id="recurringFrequency" required>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="recurringStartDate">Start Date</label>
+                                <input type="date" id="recurringStartDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="recurringEndDate">End Date (Optional)</label>
+                                <input type="date" id="recurringEndDate">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Template</button>
+                            <button type="button" class="btn btn-secondary" id="cancelRecurringEditBtn" style="display:none;">Cancel Edit</button>
+                        </form>
+                    </div>
+                </div>
+                <div id="viewRecurringTab" class="tab-content">
+                    <h2>Recurring Templates</h2>
+                    <div class="card">
+                        <div id="recurringTemplatesListContainer" class="table-container">
+                            <p>No recurring templates found.</p>
+                        </div>
+                    </div>
+                    <h2>Upcoming Recurring Transactions</h2>
+                     <div class="card">
+                        <div id="upcomingRecurringListContainer" class="table-container">
+                            <p>No upcoming recurring transactions.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Page -->
+            <section id="settings" class="page">
+                <h2>Settings</h2>
+                <div class="card">
+                    <h3>Manage Categories</h3>
+                    <div class="form-group">
+                        <label for="categoryName">Category Name</label>
+                        <input type="text" id="categoryName" placeholder="e.g., Office Supplies, Salary">
+                    </div>
+                    <div class="form-group">
+                        <label for="categoryType">Category Type</label>
+                        <select id="categoryType">
+                            <option value="expense">Expense</option>
+                            <option value="income">Income</option>
+                        </select>
+                    </div>
+                    <button id="addCategoryBtn" class="btn btn-primary">Add Category</button>
+                    <div id="expenseCategoriesList" class="table-container" style="margin-top:1rem;"><h4>Expense Categories</h4></div>
+                    <div id="incomeCategoriesList" class="table-container" style="margin-top:1rem;"><h4>Income Categories</h4></div>
+                </div>
+                <div class="card">
+                    <h3>Manage Payment Methods</h3>
+                    <div class="form-group">
+                        <label for="paymentMethodName">Payment Method Name</label>
+                        <input type="text" id="paymentMethodName" placeholder="e.g., Credit Card, Bank Transfer">
+                    </div>
+                    <button id="addPaymentMethodBtn" class="btn btn-primary">Add Payment Method</button>
+                    <div id="paymentMethodsList" class="table-container" style="margin-top:1rem;"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for viewing full receipt image -->
+    <div id="receiptModal" class="modal">
+        <span class="close-btn" id="closeReceiptModal">&times;</span>
+        <img class="modal-content" id="fullReceiptImage" style="max-width: 90%; max-height: 90vh; object-fit: contain; padding:0; background:none; box-shadow:none;">
+    </div>
+
+    <script>
+    // BizExpense Tracker - Author: Yasin Ullah Pakistani
+    // --- APP INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const App = {
+            db: null,
+            currentTheme: localStorage.getItem('theme') || 'dark',
+            currentChart: null,
+            editingTransactionId: null,
+            editingRecurringId: null,
+
+            // --- DATABASE OPERATIONS ---
+            DB: {
+                init() {
+                    return new Promise((resolve, reject) => {
+                        const request = indexedDB.open('BizExpenseDB', 3); // Incremented version for schema changes
+
+                        request.onupgradeneeded = (event) => {
+                            const db = event.target.result;
+                            if (!db.objectStoreNames.contains('transactions')) {
+                                const transactionStore = db.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
+                                transactionStore.createIndex('date', 'date', { unique: false });
+                                transactionStore.createIndex('type', 'type', { unique: false });
+                                transactionStore.createIndex('category', 'category', { unique: false });
+                                transactionStore.createIndex('paymentMethod', 'paymentMethod', { unique: false });
+                                transactionStore.createIndex('type_date', ['type', 'date'], { unique: false }); // For combined queries
+                            }
+                            if (!db.objectStoreNames.contains('categories')) {
+                                const categoryStore = db.createObjectStore('categories', { keyPath: 'id', autoIncrement: true });
+                                categoryStore.createIndex('name_type', ['name', 'type'], { unique: true });
+                            }
+                            if (!db.objectStoreNames.contains('paymentMethods')) {
+                                const paymentMethodStore = db.createObjectStore('paymentMethods', { keyPath: 'id', autoIncrement: true });
+                                paymentMethodStore.createIndex('name', 'name', { unique: true });
+                            }
+                            if (!db.objectStoreNames.contains('recurringTemplates')) {
+                                const recurringStore = db.createObjectStore('recurringTemplates', { keyPath: 'id', autoIncrement: true });
+                                recurringStore.createIndex('type', 'type', { unique: false });
+                                recurringStore.createIndex('nextDueDate', 'nextDueDate', { unique: false });
+                            }
+                        };
+
+                        request.onsuccess = (event) => {
+                            App.db = event.target.result;
+                            console.log('Database initialized successfully.');
+                            resolve();
+                        };
+
+                        request.onerror = (event) => {
+                            console.error('Database error:', event.target.errorCode);
+                            reject(event.target.errorCode);
+                        };
+                    });
+                },
+
+                async add(storeName, data) {
+                    return new Promise((resolve, reject) => {
+                        if (!App.db) { reject("DB not initialized"); return; }
+                        const transaction = App.db.transaction([storeName], 'readwrite');
+                        const store = transaction.objectStore(storeName);
+                        const request = store.add(data);
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = (event) => reject(event.target.error);
+                    });
+                },
+
+                async get(storeName, id) {
+                    return new Promise((resolve, reject) => {
+                        if (!App.db) { reject("DB not initialized"); return; }
+                        const transaction = App.db.transaction([storeName], 'readonly');
+                        const store = transaction.objectStore(storeName);
+                        const request = store.get(id);
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = (event) => reject(event.target.error);
+                    });
+                },
+
+                async getAll(storeName, indexName = null, query = null) {
+                    return new Promise((resolve, reject) => {
+                        if (!App.db) { reject("DB not initialized"); return; }
+                        const transaction = App.db.transaction([storeName], 'readonly');
+                        const store = transaction.objectStore(storeName);
+                        let request;
+                        if (indexName && query !== undefined) {
+                            request = store.index(indexName).getAll(query);
+                        } else {
+                            request = store.getAll();
+                        }
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = (event) => reject(event.target.error);
+                    });
+                },
+                
+                async update(storeName, data) {
+                    return new Promise((resolve, reject) => {
+                        if (!App.db) { reject("DB not initialized"); return; }
+                        const transaction = App.db.transaction([storeName], 'readwrite');
+                        const store = transaction.objectStore(storeName);
+                        const request = store.put(data); // put handles both add and update
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = (event) => reject(event.target.error);
+                    });
+                },
+
+                async delete(storeName, id) {
+                    return new Promise((resolve, reject) => {
+                        if (!App.db) { reject("DB not initialized"); return; }
+                        const transaction = App.db.transaction([storeName], 'readwrite');
+                        const store = transaction.objectStore(storeName);
+                        const request = store.delete(id);
+                        request.onsuccess = () => resolve();
+                        request.onerror = (event) => reject(event.target.error);
+                    });
+                },
+                async getFilteredTransactions(filters) {
+                    return new Promise(async (resolve, reject) => {
+                        if (!App.db) { reject("DB not initialized"); return; }
+                        let allTransactions = await App.DB.getAll('transactions');
+                        
+                        if (filters.keyword) {
+                            const keyword = filters.keyword.toLowerCase();
+                            allTransactions = allTransactions.filter(t =>
+                                (t.description && t.description.toLowerCase().includes(keyword)) ||
+                                (t.vendor && t.vendor.toLowerCase().includes(keyword)) ||
+                                (t.client && t.client.toLowerCase().includes(keyword)) ||
+                                (t.category && t.category.toLowerCase().includes(keyword))
+                            );
+                        }
+                        if (filters.type) {
+                            allTransactions = allTransactions.filter(t => t.type === filters.type);
+                        }
+                        if (filters.category) {
+                            allTransactions = allTransactions.filter(t => t.category === filters.category);
+                        }
+                        if (filters.startDate) {
+                            allTransactions = allTransactions.filter(t => new Date(t.date) >= new Date(filters.startDate));
+                        }
+                        if (filters.endDate) {
+                            // Add 1 day to endDate to make it inclusive
+                            const endDate = new Date(filters.endDate);
+                            endDate.setDate(endDate.getDate() + 1);
+                            allTransactions = allTransactions.filter(t => new Date(t.date) < endDate);
+                        }
+                        resolve(allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date)));
+                    });
+                }
+            },
+
+            // --- UI RENDERING & MANIPULATION ---
+            UI: {
+                init() {
+                    App.UI.setTheme(App.currentTheme);
+                    App.UI.setupEventListeners();
+                    App.UI.navigateTo('dashboard');
+                    App.UI.populateDropdowns();
+                    App.UI.renderDashboard();
+                    App.UI.renderTransactionsList();
+                    App.UI.renderCategories();
+                    App.UI.renderPaymentMethods();
+                    App.UI.renderRecurringTemplates();
+                    App.UI.renderUpcomingRecurring();
+                    App.UI.updateTransactionFormUI('expense'); // Default form to expense
+                    document.getElementById('transactionDate').valueAsDate = new Date();
+                    document.getElementById('recurringStartDate').valueAsDate = new Date();
+                },
+
+                setTheme(theme) {
+                    document.body.dataset.theme = theme;
+                    localStorage.setItem('theme', theme);
+                    App.currentTheme = theme;
+                    document.getElementById('themeSwitcher').textContent = theme === 'dark' ? '🌙' : '☀️';
+                    if (App.currentChart) App.UI.updateChartTheme();
+                },
+
+                toggleTheme() {
+                    const newTheme = App.currentTheme === 'dark' ? 'light' : 'dark';
+                    App.UI.setTheme(newTheme);
+                },
+
+                navigateTo(pageId) {
+                    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+                    document.getElementById(pageId).classList.add('active');
+                    document.querySelectorAll('.nav-link').forEach(link => {
+                        link.classList.remove('active');
+                        if (link.dataset.page === pageId) {
+                            link.classList.add('active');
+                        }
+                    });
+                    if (pageId === 'dashboard') App.UI.renderDashboard();
+                    if (pageId === 'transactions') App.UI.renderTransactionsList();
+                    if (pageId === 'reports') App.UI.resetReportView();
+                    if (pageId === 'recurring') {
+                        App.UI.renderRecurringTemplates();
+                        App.UI.renderUpcomingRecurring();
+                    }
+                },
+                
+                switchTab(pageId, tabId) {
+                    const pageElement = document.getElementById(pageId);
+                    pageElement.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+                    pageElement.querySelector(`.tab-button[data-tab="${tabId}"]`).classList.add('active');
+                    pageElement.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    pageElement.querySelector(`#${tabId}`).classList.add('active');
+                },
+
+                async populateDropdowns() {
+                    const expenseCategories = await App.DB.getAll('categories', 'name_type', IDBKeyRange.bound(['', 'expense'], [String.fromCharCode(65535), 'expense']));
+                    const incomeCategories = await App.DB.getAll('categories', 'name_type', IDBKeyRange.bound(['', 'income'], [String.fromCharCode(65535), 'income']));
+                    const paymentMethods = await App.DB.getAll('paymentMethods');
+
+                    const transactionCategorySelect = document.getElementById('transactionCategory');
+                    const recurringCategorySelect = document.getElementById('recurringCategory');
+                    const filterCategorySelect = document.getElementById('filterCategory');
+                    
+                    const populateCategorySelect = (selectElem, type) => {
+                        selectElem.innerHTML = '<option value="">Select Category</option>';
+                        const categories = type === 'expense' ? expenseCategories : incomeCategories;
+                        categories.sort((a,b) => a.name.localeCompare(b.name)).forEach(cat => {
+                            const option = document.createElement('option');
+                            option.value = cat.name;
+                            option.textContent = cat.name;
+                            selectElem.appendChild(option);
+                        });
+                    };
+                    
+                    // Initial population based on default transaction type
+                    populateCategorySelect(transactionCategorySelect, document.getElementById('transactionType').value);
+                    populateCategorySelect(recurringCategorySelect, document.getElementById('recurringType').value);
+
+                    filterCategorySelect.innerHTML = '<option value="">All Categories</option>';
+                    [...expenseCategories, ...incomeCategories].sort((a,b) => a.name.localeCompare(b.name)).forEach(cat => {
+                         if (!filterCategorySelect.querySelector(`option[value="${cat.name}"]`)) { // Avoid duplicates if names are same across types
+                            const option = document.createElement('option');
+                            option.value = cat.name;
+                            option.textContent = `${cat.name} (${cat.type})`;
+                            filterCategorySelect.appendChild(option);
+                        }
+                    });
+
+                    const paymentMethodSelects = [
+                        document.getElementById('transactionPaymentMethod'),
+                        document.getElementById('recurringPaymentMethod')
+                    ];
+                    paymentMethodSelects.forEach(select => {
+                        select.innerHTML = '<option value="">Select Payment Method</option>';
+                        paymentMethods.sort((a,b) => a.name.localeCompare(b.name)).forEach(pm => {
+                            const option = document.createElement('option');
+                            option.value = pm.name;
+                            option.textContent = pm.name;
+                            select.appendChild(option);
+                        });
+                    });
+                },
+
+                updateTransactionFormUI(type) {
+                    const isExpense = type === 'expense';
+                    document.getElementById('vendorField').classList.toggle('hidden', !isExpense);
+                    document.getElementById('clientField').classList.toggle('hidden', isExpense);
+                    document.getElementById('reimbursableField').classList.toggle('hidden', !isExpense);
+                    document.getElementById('billedToClientField').classList.toggle('hidden', !isExpense);
+                    
+                    App.UI.populateCategoryDropdownForType('transactionCategory', type);
+                },
+                
+                updateRecurringFormUI(type) {
+                    const isExpense = type === 'expense';
+                    document.getElementById('recurringVendorField').classList.toggle('hidden', !isExpense);
+                    document.getElementById('recurringClientField').classList.toggle('hidden', isExpense);
+                    document.getElementById('recurringReimbursableField').classList.toggle('hidden', !isExpense);
+                    document.getElementById('recurringBilledToClientField').classList.toggle('hidden', !isExpense);
+                    App.UI.populateCategoryDropdownForType('recurringCategory', type);
+                },
+
+                async populateCategoryDropdownForType(selectId, type) {
+                    const categories = await App.DB.getAll('categories', 'name_type', IDBKeyRange.bound(['', type], [String.fromCharCode(65535), type]));
+                    const selectElem = document.getElementById(selectId);
+                    const currentValue = selectElem.value; // Preserve selection if possible
+                    selectElem.innerHTML = '<option value="">Select Category</option>';
+                    categories.sort((a,b) => a.name.localeCompare(b.name)).forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat.name;
+                        option.textContent = cat.name;
+                        selectElem.appendChild(option);
+                    });
+                    if (categories.find(c => c.name === currentValue)) {
+                        selectElem.value = currentValue;
+                    }
+                },
+
+                async renderTransactionsList(filters = {}) {
+                    const transactions = await App.DB.getFilteredTransactions(filters);
+                    const container = document.getElementById('transactionsListContainer');
+                    if (transactions.length === 0) {
+                        container.innerHTML = '<p>No transactions found.</p>';
+                        return;
+                    }
+
+                    const table = document.createElement('table');
+                    table.innerHTML = `
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Vendor/Client</th>
+                                <th>Description</th>
+                                <th>Receipt</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    `;
+                    const tbody = table.querySelector('tbody');
+                    transactions.forEach(t => {
+                        const row = tbody.insertRow();
+                        row.innerHTML = `
+                            <td>${new Date(t.date).toLocaleDateString()}</td>
+                            <td><span class="text-${t.type === 'expense' ? 'danger' : 'success'}">${t.type.charAt(0).toUpperCase() + t.type.slice(1)}</span></td>
+                            <td>${t.category}</td>
+                            <td class="${t.type === 'expense' ? 'text-danger' : 'text-success'}">${App.Utils.formatCurrency(t.amount)}</td>
+                            <td>${t.vendor || t.client || '-'}</td>
+                            <td>${t.description || '-'}</td>
+                            <td>${t.receiptImage ? '<img src="#" alt="Receipt" class="receipt-preview" data-receipt-id="'+t.id+'">' : '-'}</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm edit-transaction" data-id="${t.id}">Edit</button>
+                                <button class="btn btn-danger btn-sm delete-transaction" data-id="${t.id}">Delete</button>
+                            </td>
+                        `;
+                        if (t.receiptImage) {
+                            const imgPreview = row.querySelector('.receipt-preview');
+                            const objectURL = URL.createObjectURL(t.receiptImage);
+                            imgPreview.src = objectURL;
+                            imgPreview.onload = () => { /* URL.revokeObjectURL(objectURL); // Revoke if not needed for modal */ };
+                            imgPreview.addEventListener('click', () => App.UI.showReceiptModal(objectURL));
+                        }
+                    });
+                    container.innerHTML = '';
+                    container.appendChild(table);
+                },
+                
+                async renderRecentTransactions() {
+                    const container = document.getElementById('recentTransactionsList');
+                    const transactions = (await App.DB.getAll('transactions')).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0,5);
+                     if (transactions.length === 0) {
+                        container.innerHTML = '<p>No recent transactions.</p>';
+                        return;
+                    }
+                    const table = document.createElement('table');
+                    table.innerHTML = `
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    `;
+                    const tbody = table.querySelector('tbody');
+                    transactions.forEach(t => {
+                        const row = tbody.insertRow();
+                        row.innerHTML = `
+                            <td>${new Date(t.date).toLocaleDateString()}</td>
+                            <td><span class="text-${t.type === 'expense' ? 'danger' : 'success'}">${t.type.charAt(0).toUpperCase() + t.type.slice(1)}</span></td>
+                            <td>${t.category}</td>
+                            <td class="${t.type === 'expense' ? 'text-danger' : 'text-success'}">${App.Utils.formatCurrency(t.amount)}</td>
+                        `;
+                    });
+                    container.innerHTML = '';
+                    container.appendChild(table);
+                },
+
+                async renderDashboard() {
+                    const today = new Date();
+                    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
+
+                    const transactions = await App.DB.getAll('transactions');
+                    let totalIncome = 0;
+                    let totalExpenses = 0;
+
+                    transactions.forEach(t => {
+                        const tDate = new Date(t.date);
+                        if (tDate >= startOfMonth && tDate <= endOfMonth) {
+                            if (t.type === 'income') totalIncome += t.amount;
+                            if (t.type === 'expense') totalExpenses += t.amount;
+                        }
+                    });
+
+                    document.getElementById('summaryTotalIncome').textContent = App.Utils.formatCurrency(totalIncome);
+                    document.getElementById('summaryTotalExpenses').textContent = App.Utils.formatCurrency(totalExpenses);
+                    document.getElementById('summaryNetBalance').textContent = App.Utils.formatCurrency(totalIncome - totalExpenses);
+                    
+                    App.UI.renderRecentTransactions();
+                },
+
+                async renderCategories() {
+                    const expenseCategories = await App.DB.getAll('categories', 'name_type', IDBKeyRange.bound(['', 'expense'], [String.fromCharCode(65535), 'expense']));
+                    const incomeCategories = await App.DB.getAll('categories', 'name_type', IDBKeyRange.bound(['', 'income'], [String.fromCharCode(65535), 'income']));
+                    
+                    const createTable = (categories, type) => {
+                        if (categories.length === 0) return '<p>No categories defined.</p>';
+                        let table = '<table><thead><tr><th>Name</th><th>Actions</th></tr></thead><tbody>';
+                        categories.sort((a,b) => a.name.localeCompare(b.name)).forEach(cat => {
+                            table += `<tr><td>${cat.name}</td><td><button class="btn btn-danger btn-sm delete-category" data-id="${cat.id}" data-type="${type}">Delete</button></td></tr>`;
+                        });
+                        table += '</tbody></table>';
+                        return table;
+                    };
+
+                    document.getElementById('expenseCategoriesList').innerHTML = '<h4>Expense Categories</h4>' + createTable(expenseCategories, 'expense');
+                    document.getElementById('incomeCategoriesList').innerHTML = '<h4>Income Categories</h4>' + createTable(incomeCategories, 'income');
+                    App.UI.populateDropdowns(); // Repopulate after changes
+                },
+
+                async renderPaymentMethods() {
+                    const paymentMethods = await App.DB.getAll('paymentMethods');
+                    const container = document.getElementById('paymentMethodsList');
+                    if (paymentMethods.length === 0) {
+                        container.innerHTML = '<p>No payment methods defined.</p>';
+                        return;
+                    }
+                    let table = '<table><thead><tr><th>Name</th><th>Actions</th></tr></thead><tbody>';
+                    paymentMethods.sort((a,b) => a.name.localeCompare(b.name)).forEach(pm => {
+                        table += `<tr><td>${pm.name}</td><td><button class="btn btn-danger btn-sm delete-payment-method" data-id="${pm.id}">Delete</button></td></tr>`;
+                    });
+                    table += '</tbody></table>';
+                    container.innerHTML = table;
+                    App.UI.populateDropdowns(); // Repopulate after changes
+                },
+                
+                async renderRecurringTemplates() {
+                    const templates = await App.DB.getAll('recurringTemplates');
+                    const container = document.getElementById('recurringTemplatesListContainer');
+                    if (templates.length === 0) {
+                        container.innerHTML = '<p>No recurring templates found.</p>';
+                        return;
+                    }
+                    const table = document.createElement('table');
+                    table.innerHTML = `
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Frequency</th>
+                                <th>Next Due</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    `;
+                    const tbody = table.querySelector('tbody');
+                    templates.sort((a,b) => new Date(a.nextDueDate) - new Date(b.nextDueDate)).forEach(template => {
+                        const row = tbody.insertRow();
+                        row.innerHTML = `
+                            <td>${template.type.charAt(0).toUpperCase() + template.type.slice(1)}</td>
+                            <td>${template.details.description || '-'} (${template.details.category})</td>
+                            <td>${App.Utils.formatCurrency(template.details.amount)}</td>
+                            <td>${template.frequency.charAt(0).toUpperCase() + template.frequency.slice(1)}</td>
+                            <td>${new Date(template.nextDueDate).toLocaleDateString()}</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm edit-recurring" data-id="${template.id}">Edit</button>
+                                <button class="btn btn-danger btn-sm delete-recurring" data-id="${template.id}">Delete</button>
+                            </td>
+                        `;
+                    });
+                    container.innerHTML = '';
+                    container.appendChild(table);
+                },
+
+                async renderUpcomingRecurring() {
+                    const templates = await App.DB.getAll('recurringTemplates');
+                    const container = document.getElementById('upcomingRecurringListContainer');
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+
+                    const upcoming = templates.filter(t => {
+                        const nextDueDate = new Date(t.nextDueDate);
+                        nextDueDate.setHours(0,0,0,0);
+                        return nextDueDate <= today && (!t.endDate || new Date(t.endDate) >= today);
+                    }).sort((a,b) => new Date(a.nextDueDate) - new Date(b.nextDueDate));
+
+                    if (upcoming.length === 0) {
+                        container.innerHTML = '<p>No upcoming recurring transactions due.</p>';
+                        return;
+                    }
+
+                    const table = document.createElement('table');
+                    table.innerHTML = `
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Due Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    `;
+                    const tbody = table.querySelector('tbody');
+                    upcoming.forEach(template => {
+                        const row = tbody.insertRow();
+                        row.innerHTML = `
+                            <td>${template.details.description || template.details.category} (${template.type})</td>
+                            <td>${App.Utils.formatCurrency(template.details.amount)}</td>
+                            <td>${new Date(template.nextDueDate).toLocaleDateString()}</td>
+                            <td><button class="btn btn-success btn-sm log-recurring" data-id="${template.id}">Log Now</button></td>
+                        `;
+                    });
+                    container.innerHTML = '';
+                    container.appendChild(table);
+                },
+
+                resetForm(formId) {
+                    const form = document.getElementById(formId);
+                    form.reset();
+                    if (formId === 'transactionForm') {
+                        document.getElementById('transactionId').value = '';
+                        document.getElementById('transactionFormTitle').textContent = 'Add New Transaction';
+                        document.getElementById('cancelEditBtn').style.display = 'none';
+                        document.getElementById('receiptPreview').classList.add('hidden');
+                        document.getElementById('receiptPreview').src = '#';
+                        document.getElementById('existingReceiptData').value = '';
+                        document.getElementById('transactionDate').valueAsDate = new Date();
+                        App.UI.updateTransactionFormUI('expense'); // Reset to expense
+                        App.editingTransactionId = null;
+                    } else if (formId === 'recurringForm') {
+                        document.getElementById('recurringId').value = '';
+                        document.getElementById('recurringFormTitle').textContent = 'Add New Recurring Template';
+                        document.getElementById('cancelRecurringEditBtn').style.display = 'none';
+                        document.getElementById('recurringStartDate').valueAsDate = new Date();
+                        App.UI.updateRecurringFormUI('expense'); // Reset to expense
+                        App.editingRecurringId = null;
+                    }
+                },
+
+                showNotification(message, type = 'success') {
+                    // Simple alert for now, can be replaced with a styled toast/snackbar
+                    alert(`${type.toUpperCase()}: ${message}`);
+                },
+
+                showReceiptModal(imageSrc) {
+                    document.getElementById('fullReceiptImage').src = imageSrc;
+                    document.getElementById('receiptModal').style.display = 'flex';
+                },
+                closeReceiptModal() {
+                    document.getElementById('receiptModal').style.display = 'none';
+                    document.getElementById('fullReceiptImage').src = ''; // Clear image
+                },
+                
+                resetReportView() {
+                    const reportOutput = document.getElementById('reportOutput');
+                    reportOutput.querySelector('#reportTableContainer').innerHTML = '';
+                    const chartCanvas = document.getElementById('reportChart');
+                    if (App.currentChart) {
+                        App.currentChart.destroy();
+                        App.currentChart = null;
+                    }
+                    // Reset custom date range visibility
+                    document.getElementById('customDateRangeReport').classList.add('hidden');
+                    document.getElementById('reportPeriod').value = 'currentMonth';
+                },
+
+                updateChartTheme() {
+                    if (!App.currentChart) return;
+                    const isDark = App.currentTheme === 'dark';
+                    const textColor = isDark ? '#E0E0E0' : '#212529';
+                    const gridColor = isDark ? 'rgba(224, 224, 224, 0.1)' : 'rgba(33, 37, 41, 0.1)';
+
+                    App.currentChart.options.scales.x.ticks.color = textColor;
+                    App.currentChart.options.scales.x.grid.color = gridColor;
+                    App.currentChart.options.scales.y.ticks.color = textColor;
+                    App.currentChart.options.scales.y.grid.color = gridColor;
+                    App.currentChart.options.plugins.legend.labels.color = textColor;
+                    App.currentChart.update();
+                },
+
+                setupEventListeners() {
+                    // Theme switcher
+                    document.getElementById('themeSwitcher').addEventListener('click', App.UI.toggleTheme);
+
+                    // Navigation
+                    document.querySelectorAll('.nav-link').forEach(link => {
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            App.UI.navigateTo(e.target.dataset.page);
+                        });
+                    });
+                    
+                    // Tab switching
+                    document.querySelectorAll('.tabs .tab-button').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const pageId = e.target.closest('.page').id;
+                            const tabId = e.target.dataset.tab;
+                            App.UI.switchTab(pageId, tabId);
+                        });
+                    });
+
+                    // Transaction form
+                    document.getElementById('transactionForm').addEventListener('submit', App.Handlers.handleTransactionFormSubmit);
+                    document.getElementById('transactionType').addEventListener('change', (e) => App.UI.updateTransactionFormUI(e.target.value));
+                    document.getElementById('transactionReceipt').addEventListener('change', App.Handlers.handleReceiptPreview);
+                    document.getElementById('cancelEditBtn').addEventListener('click', () => App.UI.resetForm('transactionForm'));
+                    document.getElementById('quickAddExpenseBtn').addEventListener('click', () => {
+                        App.UI.navigateTo('transactions');
+                        App.UI.switchTab('transactions', 'addTransactionTab');
+                        App.UI.resetForm('transactionForm');
+                        document.getElementById('transactionType').value = 'expense';
+                        App.UI.updateTransactionFormUI('expense');
+                    });
+                    document.getElementById('quickAddIncomeBtn').addEventListener('click', () => {
+                        App.UI.navigateTo('transactions');
+                        App.UI.switchTab('transactions', 'addTransactionTab');
+                        App.UI.resetForm('transactionForm');
+                        document.getElementById('transactionType').value = 'income';
+                        App.UI.updateTransactionFormUI('income');
+                    });
+
+
+                    // Transaction list actions (delegated)
+                    document.getElementById('transactionsListContainer').addEventListener('click', (e) => {
+                        if (e.target.classList.contains('edit-transaction')) {
+                            App.Handlers.handleEditTransaction(parseInt(e.target.dataset.id));
+                        }
+                        if (e.target.classList.contains('delete-transaction')) {
+                            App.Handlers.handleDeleteTransaction(parseInt(e.target.dataset.id));
+                        }
+                    });
+                    
+                    // Transaction filters
+                    document.getElementById('applyFiltersBtn').addEventListener('click', App.Handlers.applyTransactionFilters);
+                    document.getElementById('resetFiltersBtn').addEventListener('click', App.Handlers.resetTransactionFilters);
+
+
+                    // Settings: Categories
+                    document.getElementById('addCategoryBtn').addEventListener('click', App.Handlers.handleAddCategory);
+                    document.getElementById('expenseCategoriesList').addEventListener('click', App.Handlers.handleDeleteCategory);
+                    document.getElementById('incomeCategoriesList').addEventListener('click', App.Handlers.handleDeleteCategory);
+
+                    // Settings: Payment Methods
+                    document.getElementById('addPaymentMethodBtn').addEventListener('click', App.Handlers.handleAddPaymentMethod);
+                    document.getElementById('paymentMethodsList').addEventListener('click', App.Handlers.handleDeletePaymentMethod);
+                    
+                    // Reports
+                    document.getElementById('generateReportBtn').addEventListener('click', App.Handlers.handleGenerateReport);
+                    document.getElementById('reportPeriod').addEventListener('change', (e) => {
+                        document.getElementById('customDateRangeReport').classList.toggle('hidden', e.target.value !== 'custom');
+                    });
+
+                    // Recurring Form
+                    document.getElementById('recurringForm').addEventListener('submit', App.Handlers.handleRecurringFormSubmit);
+                    document.getElementById('recurringType').addEventListener('change', (e) => App.UI.updateRecurringFormUI(e.target.value));
+                    document.getElementById('cancelRecurringEditBtn').addEventListener('click', () => App.UI.resetForm('recurringForm'));
+
+                    // Recurring List Actions (delegated)
+                    document.getElementById('recurringTemplatesListContainer').addEventListener('click', (e) => {
+                        if (e.target.classList.contains('edit-recurring')) {
+                            App.Handlers.handleEditRecurring(parseInt(e.target.dataset.id));
+                        }
+                        if (e.target.classList.contains('delete-recurring')) {
+                            App.Handlers.handleDeleteRecurring(parseInt(e.target.dataset.id));
+                        }
+                    });
+                    document.getElementById('upcomingRecurringListContainer').addEventListener('click', (e) => {
+                        if (e.target.classList.contains('log-recurring')) {
+                            App.Handlers.handleLogRecurring(parseInt(e.target.dataset.id));
+                        }
+                    });
+
+                    // Receipt Modal
+                    document.getElementById('closeReceiptModal').addEventListener('click', App.UI.closeReceiptModal);
+                    document.getElementById('receiptModal').addEventListener('click', (e) => {
+                        if (e.target.id === 'receiptModal') App.UI.closeReceiptModal(); // Close if backdrop is clicked
+                    });
+                    
+                    // Data Export
+                    document.getElementById('exportCSVBtn').addEventListener('click', App.Handlers.handleExportCSV);
+                    document.getElementById('exportJSONBtn').addEventListener('click', App.Handlers.handleExportJSON);
+                }
+            },
+
+            // --- EVENT HANDLERS & LOGIC ---
+            Handlers: {
+                async handleTransactionFormSubmit(event) {
+                    event.preventDefault();
+                    const form = event.target;
+                    const id = App.editingTransactionId ? parseInt(App.editingTransactionId) : null;
+                    const type = form.transactionType.value;
+                    const date = form.transactionDate.value;
+                    const category = form.transactionCategory.value;
+                    const amount = parseFloat(form.transactionAmount.value);
+                    const vendor = type === 'expense' ? form.transactionVendor.value : null;
+                    const client = type === 'income' ? form.transactionClient.value : null;
+                    const description = form.transactionDescription.value;
+                    const paymentMethod = form.transactionPaymentMethod.value;
+                    const reimbursable = type === 'expense' ? form.transactionReimbursable.checked : false;
+                    const billedToClient = type === 'expense' ? form.transactionBilledToClient.checked : false;
+                    const receiptFile = form.transactionReceipt.files[0];
+                    
+                    if (!date || !category || isNaN(amount) || amount <= 0 || !paymentMethod) {
+                        App.UI.showNotification('Please fill all required fields correctly.', 'error');
+                        return;
+                    }
+
+                    let receiptImage = null;
+                    if (receiptFile) {
+                        receiptImage = await App.Utils.fileToBlob(receiptFile);
+                    } else if (id && document.getElementById('existingReceiptData').value === 'true') {
+                        // Keep existing receipt if editing and no new file uploaded
+                        const existingTransaction = await App.DB.get('transactions', id);
+                        receiptImage = existingTransaction.receiptImage;
+                    }
+
+                    const transactionData = {
+                        type, date, category, amount, description, paymentMethod,
+                        vendor, client, reimbursable, billedToClient, receiptImage,
+                        createdAt: id ? (await App.DB.get('transactions', id)).createdAt : new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+
+                    try {
+                        if (id) {
+                            transactionData.id = id;
+                            await App.DB.update('transactions', transactionData);
+                            App.UI.showNotification('Transaction updated successfully!');
+                        } else {
+                            await App.DB.add('transactions', transactionData);
+                            App.UI.showNotification('Transaction added successfully!');
+                        }
+                        App.UI.resetForm('transactionForm');
+                        App.UI.renderTransactionsList();
+                        App.UI.renderDashboard();
+                    } catch (error) {
+                        console.error('Error saving transaction:', error);
+                        App.UI.showNotification(`Error saving transaction: ${error.message || error}`, 'error');
+                    }
+                },
+
+                async handleEditTransaction(id) {
+                    const transaction = await App.DB.get('transactions', id);
+                    if (!transaction) return;
+
+                    App.editingTransactionId = id;
+                    App.UI.navigateTo('transactions');
+                    App.UI.switchTab('transactions', 'addTransactionTab');
+                    
+                    document.getElementById('transactionFormTitle').textContent = 'Edit Transaction';
+                    document.getElementById('transactionId').value = transaction.id;
+                    document.getElementById('transactionType').value = transaction.type;
+                    App.UI.updateTransactionFormUI(transaction.type); // This will also populate categories for the type
+                    document.getElementById('transactionDate').value = transaction.date;
+                    // Wait for category dropdown to populate then set value
+                    setTimeout(() => {
+                         document.getElementById('transactionCategory').value = transaction.category;
+                    }, 100);
+                    document.getElementById('transactionAmount').value = transaction.amount;
+                    document.getElementById('transactionVendor').value = transaction.vendor || '';
+                    document.getElementById('transactionClient').value = transaction.client || '';
+                    document.getElementById('transactionDescription').value = transaction.description || '';
+                    document.getElementById('transactionPaymentMethod').value = transaction.paymentMethod;
+                    document.getElementById('transactionReimbursable').checked = transaction.reimbursable || false;
+                    document.getElementById('transactionBilledToClient').checked = transaction.billedToClient || false;
+                    
+                    const receiptPreview = document.getElementById('receiptPreview');
+                    const existingReceiptData = document.getElementById('existingReceiptData');
+                    if (transaction.receiptImage) {
+                        const objectURL = URL.createObjectURL(transaction.receiptImage);
+                        receiptPreview.src = objectURL;
+                        receiptPreview.classList.remove('hidden');
+                        existingReceiptData.value = 'true'; // Mark that there's an existing receipt
+                    } else {
+                        receiptPreview.classList.add('hidden');
+                        receiptPreview.src = '#';
+                        existingReceiptData.value = '';
+                    }
+                    document.getElementById('transactionReceipt').value = ''; // Clear file input
+
+                    document.getElementById('cancelEditBtn').style.display = 'inline-block';
+                    window.scrollTo(0, 0); // Scroll to top of form
+                },
+
+                async handleDeleteTransaction(id) {
+                    if (confirm('Are you sure you want to delete this transaction?')) {
+                        try {
+                            await App.DB.delete('transactions', id);
+                            App.UI.showNotification('Transaction deleted successfully!');
+                            App.UI.renderTransactionsList();
+                            App.UI.renderDashboard();
+                        } catch (error) {
+                            console.error('Error deleting transaction:', error);
+                            App.UI.showNotification('Error deleting transaction.', 'error');
+                        }
+                    }
+                },
+                
+                async applyTransactionFilters() {
+                    const filters = {
+                        keyword: document.getElementById('searchKeyword').value,
+                        type: document.getElementById('filterType').value,
+                        category: document.getElementById('filterCategory').value,
+                        startDate: document.getElementById('filterStartDate').value,
+                        endDate: document.getElementById('filterEndDate').value,
+                    };
+                    App.UI.renderTransactionsList(filters);
+                },
+
+                resetTransactionFilters() {
+                    document.getElementById('searchKeyword').value = '';
+                    document.getElementById('filterType').value = '';
+                    document.getElementById('filterCategory').value = '';
+                    document.getElementById('filterStartDate').value = '';
+                    document.getElementById('filterEndDate').value = '';
+                    App.UI.renderTransactionsList();
+                },
+
+                async handleAddCategory() {
+                    const name = document.getElementById('categoryName').value.trim();
+                    const type = document.getElementById('categoryType').value;
+                    if (!name) {
+                        App.UI.showNotification('Category name cannot be empty.', 'error');
+                        return;
+                    }
+                    try {
+                        await App.DB.add('categories', { name, type });
+                        App.UI.showNotification('Category added successfully!');
+                        document.getElementById('categoryName').value = '';
+                        App.UI.renderCategories();
+                    } catch (error) {
+                        console.error('Error adding category:', error);
+                        if (error.name === 'ConstraintError') {
+                             App.UI.showNotification('This category already exists for the selected type.', 'error');
+                        } else {
+                             App.UI.showNotification('Error adding category.', 'error');
+                        }
+                    }
+                },
+
+                async handleDeleteCategory(event) {
+                    if (!event.target.classList.contains('delete-category')) return;
+                    const id = parseInt(event.target.dataset.id);
+                    const type = event.target.dataset.type;
+                    if (confirm(`Are you sure you want to delete this category? This might affect existing transactions.`)) {
+                        try {
+                            // Optional: Check if category is in use before deleting or offer to re-assign
+                            await App.DB.delete('categories', id);
+                            App.UI.showNotification('Category deleted successfully!');
+                            App.UI.renderCategories();
+                        } catch (error) {
+                            console.error('Error deleting category:', error);
+                            App.UI.showNotification('Error deleting category.', 'error');
+                        }
+                    }
+                },
+
+                async handleAddPaymentMethod() {
+                    const name = document.getElementById('paymentMethodName').value.trim();
+                    if (!name) {
+                        App.UI.showNotification('Payment method name cannot be empty.', 'error');
+                        return;
+                    }
+                    try {
+                        await App.DB.add('paymentMethods', { name });
+                        App.UI.showNotification('Payment method added successfully!');
+                        document.getElementById('paymentMethodName').value = '';
+                        App.UI.renderPaymentMethods();
+                    } catch (error)
+                    {
+                        console.error('Error adding payment method:', error);
+                         if (error.name === 'ConstraintError') {
+                             App.UI.showNotification('This payment method already exists.', 'error');
+                        } else {
+                            App.UI.showNotification('Error adding payment method.', 'error');
+                        }
+                    }
+                },
+
+                async handleDeletePaymentMethod(event) {
+                    if (!event.target.classList.contains('delete-payment-method')) return;
+                    const id = parseInt(event.target.dataset.id);
+                     if (confirm('Are you sure you want to delete this payment method? This might affect existing transactions.')) {
+                        try {
+                            await App.DB.delete('paymentMethods', id);
+                            App.UI.showNotification('Payment method deleted successfully!');
+                            App.UI.renderPaymentMethods();
+                        } catch (error) {
+                            console.error('Error deleting payment method:', error);
+                            App.UI.showNotification('Error deleting payment method.', 'error');
+                        }
+                    }
+                },
+                
+                handleReceiptPreview(event) {
+                    const file = event.target.files[0];
+                    const preview = document.getElementById('receiptPreview');
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            preview.src = e.target.result;
+                            preview.classList.remove('hidden');
+                        }
+                        reader.readAsDataURL(file);
+                        document.getElementById('existingReceiptData').value = ''; // New file overrides existing
+                    } else {
+                        // If a file was selected then deselected, and there was an existing receipt, show it again
+                        if (document.getElementById('existingReceiptData').value === 'true' && App.editingTransactionId) {
+                            // This logic needs to be smarter, perhaps store the existing blob URL temporarily
+                            // For now, just hide if no file. The submit handler will manage existing blob.
+                             preview.classList.add('hidden');
+                             preview.src = '#';
+                        } else {
+                            preview.classList.add('hidden');
+                            preview.src = '#';
+                        }
+                    }
+                },
+                
+                async handleRecurringFormSubmit(event) {
+                    event.preventDefault();
+                    const form = event.target;
+                    const id = App.editingRecurringId ? parseInt(App.editingRecurringId) : null;
+
+                    const type = form.recurringType.value;
+                    const category = form.recurringCategory.value;
+                    const amount = parseFloat(form.recurringAmount.value);
+                    const vendor = type === 'expense' ? form.recurringVendor.value : null;
+                    const client = type === 'income' ? form.recurringClient.value : null;
+                    const description = form.recurringDescription.value;
+                    const paymentMethod = form.recurringPaymentMethod.value;
+                    const reimbursable = type === 'expense' ? form.recurringReimbursable.checked : false;
+                    const billedToClient = type === 'expense' ? form.recurringBilledToClient.checked : false;
+                    
+                    const frequency = form.recurringFrequency.value;
+                    const startDate = form.recurringStartDate.value;
+                    const endDate = form.recurringEndDate.value || null;
+
+                    if (!type || !category || isNaN(amount) || amount <= 0 || !paymentMethod || !frequency || !startDate) {
+                        App.UI.showNotification('Please fill all required fields for the recurring template correctly.', 'error');
+                        return;
+                    }
+                    
+                    const templateData = {
+                        type,
+                        details: { category, amount, vendor, client, description, paymentMethod, reimbursable, billedToClient },
+                        frequency,
+                        startDate,
+                        endDate,
+                        nextDueDate: App.Utils.calculateNextDueDate(startDate, frequency, null), // Initial next due date
+                        lastGeneratedDate: null
+                    };
+
+                    try {
+                        if (id) {
+                            templateData.id = id;
+                            // Preserve lastGeneratedDate if editing, and recalculate nextDueDate based on it if needed
+                            const existingTemplate = await App.DB.get('recurringTemplates', id);
+                            templateData.lastGeneratedDate = existingTemplate.lastGeneratedDate;
+                            templateData.nextDueDate = App.Utils.calculateNextDueDate(existingTemplate.lastGeneratedDate || startDate, frequency, existingTemplate.lastGeneratedDate ? null : startDate);
+
+                            await App.DB.update('recurringTemplates', templateData);
+                            App.UI.showNotification('Recurring template updated successfully!');
+                        } else {
+                            await App.DB.add('recurringTemplates', templateData);
+                            App.UI.showNotification('Recurring template added successfully!');
+                        }
+                        App.UI.resetForm('recurringForm');
+                        App.UI.renderRecurringTemplates();
+                        App.UI.renderUpcomingRecurring();
+                    } catch (error) {
+                        console.error('Error saving recurring template:', error);
+                        App.UI.showNotification(`Error saving template: ${error.message || error}`, 'error');
+                    }
+                },
+
+                async handleEditRecurring(id) {
+                    const template = await App.DB.get('recurringTemplates', id);
+                    if (!template) return;
+
+                    App.editingRecurringId = id;
+                    App.UI.navigateTo('recurring');
+                    App.UI.switchTab('recurring', 'addRecurringTab');
+                    
+                    document.getElementById('recurringFormTitle').textContent = 'Edit Recurring Template';
+                    document.getElementById('recurringId').value = template.id;
+                    document.getElementById('recurringType').value = template.type;
+                    App.UI.updateRecurringFormUI(template.type);
+                    
+                    setTimeout(() => { // Ensure dropdowns are populated for the type
+                        document.getElementById('recurringCategory').value = template.details.category;
+                        document.getElementById('recurringPaymentMethod').value = template.details.paymentMethod;
+                    }, 100);
+
+                    document.getElementById('recurringAmount').value = template.details.amount;
+                    document.getElementById('recurringVendor').value = template.details.vendor || '';
+                    document.getElementById('recurringClient').value = template.details.client || '';
+                    document.getElementById('recurringDescription').value = template.details.description || '';
+                    document.getElementById('recurringReimbursable').checked = template.details.reimbursable || false;
+                    document.getElementById('recurringBilledToClient').checked = template.details.billedToClient || false;
+                    
+                    document.getElementById('recurringFrequency').value = template.frequency;
+                    document.getElementById('recurringStartDate').value = template.startDate;
+                    document.getElementById('recurringEndDate').value = template.endDate || '';
+
+                    document.getElementById('cancelRecurringEditBtn').style.display = 'inline-block';
+                    window.scrollTo(0, 0);
+                },
+
+                async handleDeleteRecurring(id) {
+                    if (confirm('Are you sure you want to delete this recurring template?')) {
+                        try {
+                            await App.DB.delete('recurringTemplates', id);
+                            App.UI.showNotification('Recurring template deleted successfully!');
+                            App.UI.renderRecurringTemplates();
+                            App.UI.renderUpcomingRecurring();
+                        } catch (error) {
+                            console.error('Error deleting recurring template:', error);
+                            App.UI.showNotification('Error deleting template.', 'error');
+                        }
+                    }
+                },
+
+                async handleLogRecurring(templateId) {
+                    const template = await App.DB.get('recurringTemplates', templateId);
+                    if (!template) {
+                        App.UI.showNotification('Template not found.', 'error');
+                        return;
+                    }
+
+                    const transactionData = {
+                        type: template.type,
+                        date: template.nextDueDate, // Log for the due date
+                        category: template.details.category,
+                        amount: template.details.amount,
+                        vendor: template.details.vendor,
+                        client: template.details.client,
+                        description: `(Recurring) ${template.details.description || ''}`.trim(),
+                        paymentMethod: template.details.paymentMethod,
+                        reimbursable: template.details.reimbursable,
+                        billedToClient: template.details.billedToClient,
+                        receiptImage: null, // Recurring items typically don't have unique receipts per instance
+                        isRecurringInstance: true,
+                        recurringTemplateId: template.id,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+
+                    try {
+                        await App.DB.add('transactions', transactionData);
+                        
+                        // Update template's lastGeneratedDate and nextDueDate
+                        template.lastGeneratedDate = template.nextDueDate;
+                        template.nextDueDate = App.Utils.calculateNextDueDate(template.nextDueDate, template.frequency);
+                        await App.DB.update('recurringTemplates', template);
+
+                        App.UI.showNotification('Recurring transaction logged successfully!');
+                        App.UI.renderUpcomingRecurring();
+                        App.UI.renderTransactionsList(); // Refresh if on transactions page
+                        App.UI.renderDashboard(); // Refresh dashboard
+                    } catch (error) {
+                        console.error('Error logging recurring transaction:', error);
+                        App.UI.showNotification('Error logging transaction.', 'error');
+                    }
+                },
+                
+                async handleGenerateReport() {
+                    const reportType = document.getElementById('reportType').value;
+                    const periodType = document.getElementById('reportPeriod').value;
+                    let startDate, endDate;
+
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+
+                    if (periodType === 'custom') {
+                        startDate = document.getElementById('reportStartDate').value ? new Date(document.getElementById('reportStartDate').value) : null;
+                        endDate = document.getElementById('reportEndDate').value ? new Date(document.getElementById('reportEndDate').value) : null;
+                        if (endDate) endDate.setHours(23,59,59,999); // Inclusive end date
+                    } else {
+                        ({ startDate, endDate } = App.Utils.getDateRangeForPeriod(periodType));
+                    }
+
+                    if (!startDate || !endDate) {
+                        App.UI.showNotification('Please select a valid date range for the report.', 'error');
+                        return;
+                    }
+
+                    const allTransactions = await App.DB.getAll('transactions');
+                    const transactions = allTransactions.filter(t => {
+                        const tDate = new Date(t.date);
+                        return tDate >= startDate && tDate <= endDate;
+                    });
+
+                    App.UI.resetReportView(); // Clear previous report/chart
+                    const chartCanvas = document.getElementById('reportChart');
+                    const tableContainer = document.getElementById('reportTableContainer');
+                    tableContainer.innerHTML = ''; // Clear previous table
+
+                    const chartColors = {
+                        expense: ['#FF6384', '#FF9F40', '#FFCD56', '#C9CBCF', '#4BC0C0', '#36A2EB', '#9966FF'],
+                        income: ['#4BC0C0', '#36A2EB', '#9966FF', '#FF6384', '#FF9F40', '#FFCD56', '#C9CBCF'],
+                        net: ['#4CAF50', '#F44336'] // Green for income/positive, Red for expense/negative
+                    };
+                    
+                    const isDark = App.currentTheme === 'dark';
+                    const textColor = isDark ? '#E0E0E0' : '#212529';
+                    const gridColor = isDark ? 'rgba(224, 224, 224, 0.1)' : 'rgba(33, 37, 41, 0.1)';
+
+                    if (reportType === 'categorySummary') {
+                        const expenseSummary = {};
+                        const incomeSummary = {};
+                        transactions.forEach(t => {
+                            if (t.type === 'expense') {
+                                expenseSummary[t.category] = (expenseSummary[t.category] || 0) + t.amount;
+                            } else {
+                                incomeSummary[t.category] = (incomeSummary[t.category] || 0) + t.amount;
+                            }
+                        });
+
+                        const expenseLabels = Object.keys(expenseSummary);
+                        const expenseData = Object.values(expenseSummary);
+                        const incomeLabels = Object.keys(incomeSummary);
+                        const incomeData = Object.values(incomeSummary);
+
+                        if (expenseLabels.length > 0 || incomeLabels.length > 0) {
+                             App.currentChart = new Chart(chartCanvas, {
+                                type: 'doughnut', // Or 'pie'
+                                data: {
+                                    labels: [...expenseLabels.map(l => `Expense: ${l}`), ...incomeLabels.map(l => `Income: ${l}`)],
+                                    datasets: [{
+                                        label: 'Expenses by Category',
+                                        data: expenseData,
+                                        backgroundColor: chartColors.expense,
+                                    }, {
+                                        label: 'Income by Category',
+                                        data: incomeData,
+                                        backgroundColor: chartColors.income,
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: { legend: { labels: { color: textColor } } }
+                                }
+                            });
+                            // Create summary table
+                            let tableHTML = '<h3>Summary by Category</h3><table><thead><tr><th>Category</th><th>Type</th><th>Total Amount</th></tr></thead><tbody>';
+                            expenseLabels.forEach((cat, i) => tableHTML += `<tr><td>${cat}</td><td>Expense</td><td class="text-danger">${App.Utils.formatCurrency(expenseData[i])}</td></tr>`);
+                            incomeLabels.forEach((cat, i) => tableHTML += `<tr><td>${cat}</td><td>Income</td><td class="text-success">${App.Utils.formatCurrency(incomeData[i])}</td></tr>`);
+                            tableHTML += '</tbody></table>';
+                            tableContainer.innerHTML = tableHTML;
+                        } else {
+                            tableContainer.innerHTML = '<p>No data for this period.</p>';
+                        }
+
+                    } else if (reportType === 'periodSummary') {
+                        let totalIncome = 0, totalExpenses = 0;
+                        transactions.forEach(t => {
+                            if (t.type === 'income') totalIncome += t.amount;
+                            else totalExpenses += t.amount;
+                        });
+                        const netBalance = totalIncome - totalExpenses;
+
+                        App.currentChart = new Chart(chartCanvas, {
+                            type: 'bar',
+                            data: {
+                                labels: ['Income', 'Expenses', 'Net Balance'],
+                                datasets: [{
+                                    label: 'Financial Summary',
+                                    data: [totalIncome, totalExpenses, netBalance],
+                                    backgroundColor: [chartColors.net[0], chartColors.net[1], netBalance >= 0 ? chartColors.net[0] : chartColors.net[1]],
+                                }]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: false,
+                                scales: { 
+                                    y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } },
+                                    x: { ticks: { color: textColor }, grid: { color: gridColor } }
+                                },
+                                plugins: { legend: { display: false } }
+                            }
+                        });
+                        tableContainer.innerHTML = `<h3>Period Summary</h3>
+                            <table>
+                                <tr><td>Total Income:</td><td class="text-success">${App.Utils.formatCurrency(totalIncome)}</td></tr>
+                                <tr><td>Total Expenses:</td><td class="text-danger">${App.Utils.formatCurrency(totalExpenses)}</td></tr>
+                                <tr><td>Net Balance:</td><td class="${netBalance >= 0 ? 'text-success' : 'text-danger'} text-bold">${App.Utils.formatCurrency(netBalance)}</td></tr>
+                            </table>`;
+
+                    } else if (reportType === 'incomeVsExpense') {
+                        // Group by month or day depending on range
+                        const timeUnit = (endDate - startDate) / (1000 * 60 * 60 * 24) > 90 ? 'month' : 'day';
+                        const incomeByTime = {};
+                        const expenseByTime = {};
+                        const labels = new Set();
+
+                        transactions.forEach(t => {
+                            const dateKey = App.Utils.formatDateForGrouping(new Date(t.date), timeUnit);
+                            labels.add(dateKey);
+                            if (t.type === 'income') {
+                                incomeByTime[dateKey] = (incomeByTime[dateKey] || 0) + t.amount;
+                            } else {
+                                expenseByTime[dateKey] = (expenseByTime[dateKey] || 0) + t.amount;
+                            }
+                        });
+                        
+                        const sortedLabels = Array.from(labels).sort((a,b) => {
+                            if (timeUnit === 'month') return new Date(a + '-01') - new Date(b + '-01');
+                            return new Date(a) - new Date(b);
+                        });
+
+                        const incomeData = sortedLabels.map(label => incomeByTime[label] || 0);
+                        const expenseData = sortedLabels.map(label => expenseByTime[label] || 0);
+
+                        if (sortedLabels.length > 0) {
+                            App.currentChart = new Chart(chartCanvas, {
+                                type: 'line',
+                                data: {
+                                    labels: sortedLabels,
+                                    datasets: [
+                                        { label: 'Income', data: incomeData, borderColor: chartColors.net[0], backgroundColor: chartColors.net[0] + '80', tension: 0.1 },
+                                        { label: 'Expenses', data: expenseData, borderColor: chartColors.net[1], backgroundColor: chartColors.net[1] + '80', tension: 0.1 }
+                                    ]
+                                },
+                                options: {
+                                    responsive: true, maintainAspectRatio: false,
+                                    scales: { 
+                                        y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } },
+                                        x: { ticks: { color: textColor }, grid: { color: gridColor } }
+                                    },
+                                    plugins: { legend: { labels: { color: textColor } } }
+                                }
+                            });
+                            // Table for Income vs Expense
+                            let tableHTML = '<h3>Income vs. Expense Over Time</h3><table><thead><tr><th>Period</th><th>Income</th><th>Expense</th><th>Net</th></tr></thead><tbody>';
+                            sortedLabels.forEach((label, i) => {
+                                const income = incomeData[i];
+                                const expense = expenseData[i];
+                                const net = income - expense;
+                                tableHTML += `<tr>
+                                    <td>${label}</td>
+                                    <td class="text-success">${App.Utils.formatCurrency(income)}</td>
+                                    <td class="text-danger">${App.Utils.formatCurrency(expense)}</td>
+                                    <td class="${net >= 0 ? 'text-success' : 'text-danger'} text-bold">${App.Utils.formatCurrency(net)}</td>
+                                </tr>`;
+                            });
+                            tableHTML += '</tbody></table>';
+                            tableContainer.innerHTML = tableHTML;
+                        } else {
+                             tableContainer.innerHTML = '<p>No data for this period.</p>';
+                        }
+                    }
+                    if (App.currentChart) App.UI.updateChartTheme(); // Apply theme to new chart
+                },
+                
+                async handleExportCSV() {
+                    const transactions = await App.DB.getAll('transactions');
+                    if (transactions.length === 0) {
+                        App.UI.showNotification("No data to export.", "info");
+                        return;
+                    }
+                    const headers = ["ID", "Type", "Date", "Category", "Amount", "Vendor", "Client", "Description", "Payment Method", "Reimbursable", "Billed to Client", "Created At"];
+                    const rows = transactions.map(t => [
+                        t.id, t.type, t.date, t.category, t.amount, t.vendor || '', t.client || '', t.description || '', t.paymentMethod, t.reimbursable ? 'Yes' : 'No', t.billedToClient ? 'Yes' : 'No', t.createdAt
+                    ]);
+                    App.Utils.exportToCSV("bizexpense_tracker_data.csv", headers, rows);
+                },
+
+                async handleExportJSON() {
+                    const transactions = await App.DB.getAll('transactions');
+                    if (transactions.length === 0) {
+                        App.UI.showNotification("No data to export.", "info");
+                        return;
+                    }
+                    // For JSON, we might want to export Blobs as base64 or just a note that they exist
+                    const exportableTransactions = transactions.map(t => {
+                        const {...exportableT} = t; // shallow copy
+                        if (exportableT.receiptImage) {
+                            // Note: Exporting actual blob data can make JSON huge.
+                            // Consider exporting a flag or placeholder. For simplicity, we'll omit it here.
+                            // Or convert to base64 if needed, but that's async.
+                            exportableT.receiptImage = `Receipt image present (ID: ${t.id})`;
+                        }
+                        return exportableT;
+                    });
+                    App.Utils.exportToJSON("bizexpense_tracker_data.json", exportableTransactions);
+                }
+            },
+
+            // --- UTILITY FUNCTIONS ---
+            Utils: {
+                formatCurrency(amount) {
+                    return (amount || 0).toLocaleString(undefined, { style: 'currency', currency: 'USD' }); // Default to USD, can be made configurable
+                },
+                async fileToBlob(file) {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(new Blob([reader.result], { type: file.type }));
+                        reader.onerror = reject;
+                        reader.readAsArrayBuffer(file);
+                    });
+                },
+                calculateNextDueDate(baseDateStr, frequency, lastGeneratedDateStr = null) {
+                    let baseDate = new Date(lastGeneratedDateStr || baseDateStr);
+                    if (lastGeneratedDateStr) { // If we have a last generated date, calculate next from there
+                         baseDate = new Date(lastGeneratedDateStr);
+                    } else { // Otherwise, it's the first occurrence, use startDate
+                         baseDate = new Date(baseDateStr);
+                         return baseDate.toISOString().split('T')[0]; // First due date is the start date
+                    }
+
+                    // If lastGeneratedDate is provided, we need to advance from it
+                    if (lastGeneratedDateStr) {
+                        switch (frequency) {
+                            case 'daily': baseDate.setDate(baseDate.getDate() + 1); break;
+                            case 'weekly': baseDate.setDate(baseDate.getDate() + 7); break;
+                            case 'monthly': baseDate.setMonth(baseDate.getMonth() + 1); break;
+                            case 'yearly': baseDate.setFullYear(baseDate.getFullYear() + 1); break;
+                        }
+                    }
+                    return baseDate.toISOString().split('T')[0];
+                },
+                getDateRangeForPeriod(periodType) {
+                    const today = new Date();
+                    let startDate, endDate = new Date(today);
+                    endDate.setHours(23,59,59,999); // End of day for endDate
+
+                    switch (periodType) {
+                        case 'currentMonth':
+                            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                            endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+                            break;
+                        case 'lastMonth':
+                            startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                            endDate = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59, 999);
+                            break;
+                        case 'currentYear':
+                            startDate = new Date(today.getFullYear(), 0, 1);
+                            endDate = new Date(today.getFullYear(), 11, 31, 23, 59, 59, 999);
+                            break;
+                        case 'allTime':
+                            startDate = new Date(0); // Epoch start
+                            endDate = new Date(8640000000000000); // Max date
+                            break;
+                        default: // Should be 'custom' or invalid
+                            startDate = null; endDate = null;
+                    }
+                    if (startDate) startDate.setHours(0,0,0,0);
+                    return { startDate, endDate };
+                },
+                formatDateForGrouping(date, unit = 'day') {
+                    const year = date.getFullYear();
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    if (unit === 'month') {
+                        return `${year}-${month}`;
+                    }
+                    // Default to day
+                    const day = date.getDate().toString().padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                },
+                exportToCSV(filename, headers, rows) {
+                    const processRow = row => row.map(val => {
+                        const strVal = String(val === null || val === undefined ? '' : val);
+                        if (strVal.includes(',') || strVal.includes('"') || strVal.includes('\n')) {
+                            return `"${strVal.replace(/"/g, '""')}"`;
+                        }
+                        return strVal;
+                    }).join(',');
+
+                    const csvContent = [headers.join(','), ...rows.map(processRow)].join('\n');
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    if (link.download !== undefined) {
+                        const url = URL.createObjectURL(blob);
+                        link.setAttribute("href", url);
+                        link.setAttribute("download", filename);
+                        link.style.visibility = 'hidden';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                },
+                exportToJSON(filename, data) {
+                    const jsonContent = JSON.stringify(data, null, 2);
+                    const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    if (link.download !== undefined) {
+                        const url = URL.createObjectURL(blob);
+                        link.setAttribute("href", url);
+                        link.setAttribute("download", filename);
+                        link.style.visibility = 'hidden';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                }
+            },
+
+            // --- INITIALIZATION ---
+            async init() {
+                try {
+                    await App.DB.init();
+                    App.UI.init();
+                    console.log('BizExpense Tracker Initialized.');
+                } catch (error) {
+                    console.error('Failed to initialize app:', error);
+                    document.body.innerHTML = `<div style="color:red; padding:20px;">Error initializing application. IndexedDB might be disabled or unsupported. Details: ${error}</div>`;
+                }
+            }
+        };
+
+        App.init();
+        window.App = App; // For debugging
+    });
+    </script>
+</body>
+</html>
+
+<script>
+
+
+</script>

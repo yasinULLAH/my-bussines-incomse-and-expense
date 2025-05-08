@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizExpense Tracker</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --background-color-light: #ffffff;
+            --text-color-light: #212529;
+            --background-color-dark: #212529;
+            --text-color-dark: #f8f9fa;
+            --card-background-light: #ffffff;
+            --card-background-dark: #343a40;
+            --border-color-light: #dee2e6;
+            --border-color-dark: #495057;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color-light);
+            color: var(--text-color-light);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark-theme {
+            background-color: var(--background-color-dark);
+            color: var(--text-color-dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        nav button {
+            background-color: transparent;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 1.1em;
+            padding: 10px 15px;
+            border-bottom: 2px solid transparent;
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+
+        nav button:hover,
+        nav button.active {
+            color: var(--dark-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        body.dark-theme nav button {
+             color: var(--light-color);
+        }
+         body.dark-theme nav button:hover,
+         body.dark-theme nav button.active {
+            color: var(--light-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+
+        .card {
+            background-color: var(--card-background-light);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: background-color 0.3s;
+        }
+
+        body.dark-theme .card {
+            background-color: var(--card-background-dark);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color-light);
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: var(--background-color-light);
+            color: var(--text-color-light);
+            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+        }
+
+         body.dark-theme .form-group input[type="text"],
+         body.dark-theme .form-group input[type="number"],
+         body.dark-theme .form-group input[type="date"],
+         body.dark-theme .form-group select,
+         body.dark-theme .form-group textarea {
+            border-color: var(--border-color-dark);
+            background-color: var(--card-background-dark);
+            color: var(--text-color-dark);
+        }
+
+
+        .form-group input[type="checkbox"] {
+            margin-right: 5px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button.secondary {
+            background-color: var(--secondary-color);
+        }
+         button.secondary:hover {
+            background-color: #545b62;
+        }
+
+        button.danger {
+            background-color: var(--danger-color);
+        }
+         button.danger:hover {
+            background-color: #c82333;
+        }
+
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        #expenseList, #incomeList {
+            list-style: none;
+            padding: 0;
+        }
+
+        #expenseList li, #incomeList li {
+            background-color: var(--card-background-light);
+            border: 1px solid var(--border-color-light);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+         body.dark-theme #expenseList li,
+         body.dark-theme #incomeList li {
+            background-color: var(--card-background-dark);
+            border-color: var(--border-color-dark);
+        }
+
+
+        #expenseList li span, #incomeList li span {
+            margin-right: 10px;
+        }
+
+        #expenseList li .actions, #incomeList li .actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        #expenseList li .actions button, #incomeList li .actions button {
+            padding: 5px 10px;
+            font-size: 0.9em;
+        }
+
+        #reportChart {
+            width: 100%;
+            max-height: 400px;
+            margin-top: 20px;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-controls select,
+        .filter-controls input[type="date"] {
+             padding: 8px;
+             border: 1px solid var(--border-color-light);
+             border-radius: 4px;
+             background-color: var(--background-color-light);
+             color: var(--text-color-light);
+             transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+        }
+
+         body.dark-theme .filter-controls select,
+         body.dark-theme .filter-controls input[type="date"] {
+             border-color: var(--border-color-dark);
+             background-color: var(--card-background-dark);
+             color: var(--text-color-dark);
+        }
+
+
+        .total-summary {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .settings-section h3 {
+            margin-top: 0;
+        }
+
+        .settings-section .form-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-section .form-group input[type="text"] {
+            flex-grow: 1;
+        }
+
+        .settings-section ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+
+        .settings-section ul li {
+            background-color: var(--card-background-light);
+            border: 1px solid var(--border-color-light);
+            margin-bottom: 5px;
+            padding: 8px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+             transition: background-color 0.3s, border-color 0.3s;
+        }
+
+         body.dark-theme .settings-section ul li {
+            background-color: var(--card-background-dark);
+            border-color: var(--border-color-dark);
+        }
+
+
+        .settings-section ul li button {
+            padding: 3px 8px;
+            font-size: 0.8em;
+        }
+
+        .theme-switcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--card-background-light);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+             transition: background-color 0.3s;
+        }
+
+         body.dark-theme .theme-switcher {
+            background-color: var(--card-background-dark);
+        }
+
+
+        .theme-switcher label {
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #expenseList li, #incomeList li {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            #expenseList li .actions, #incomeList li .actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1>BizExpense Tracker</h1>
+    </header>
+
+    <div class="container">
+        <nav>
+            <button class="tab-button active" data-tab="dashboard">Dashboard</button>
+            <button class="tab-button" data-tab="add-entry">Add Entry</button>
+            <button class="tab-button" data-tab="view-entries">View Entries</button>
+            <button class="tab-button" data-tab="reports">Reports</button>
+            <button class="tab-button" data-tab="settings">Settings</button>
+        </nav>
+
+        <div id="dashboard" class="tab-content active card">
+            <h2>Dashboard</h2>
+            <p>Welcome to your BizExpense Tracker. Use the tabs above to manage your finances.</p>
+            <div class="total-summary">
+                <p>Total Expenses: <span id="dashboardTotalExpenses">$0.00</span></p>
+                <p>Total Income: <span id="dashboardTotalIncome">$0.00</span></p>
+                <p>Net Balance: <span id="dashboardNetBalance">$0.00</span></p>
+            </div>
+        </div>
+
+        <div id="add-entry" class="tab-content card">
+            <h2>Add New Entry</h2>
+            <form id="entryForm">
+                <div class="form-group">
+                    <label for="entryType">Type:</label>
+                    <select id="entryType" required>
+                        <option value="expense">Expense</option>
+                        <option value="income">Income</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="entryDate">Date:</label>
+                    <input type="date" id="entryDate" required>
+                </div>
+                 <div class="form-group">
+                    <label for="entryCategory">Category:</label>
+                    <select id="entryCategory" required>
+                        <!-- Options will be populated from settings -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="entryAmount">Amount:</label>
+                    <input type="number" id="entryAmount" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="entryVendor">Vendor/Source:</label>
+                    <input type="text" id="entryVendor">
+                </div>
+                <div class="form-group">
+                    <label for="entryDescription">Description:</label>
+                    <textarea id="entryDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="entryPaymentMethod">Payment Method:</label>
+                     <select id="entryPaymentMethod">
+                        <!-- Options will be populated from settings -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="entryReceipt">Receipt/Invoice:</label>
+                    <input type="file" id="entryReceipt" accept="image/*,application/pdf">
+                </div>
+                 <div class="form-group expense-only">
+                    <label>
+                        <input type="checkbox" id="entryReimbursable"> Reimbursable
+                    </label>
+                </div>
+                 <div class="form-group expense-only">
+                    <label>
+                        <input type="checkbox" id="entryBilledToClient"> Billed to Client
+                    </label>
+                </div>
+                 <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="entryRecurring"> Recurring Entry
+                    </label>
+                </div>
+                 <div class="form-group recurring-options" style="display: none;">
+                    <label for="recurringFrequency">Frequency:</label>
+                    <select id="recurringFrequency">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="annually">Annually</option>
+                    </select>
+                 </div>
+                <button type="submit">Add Entry</button>
+            </form>
+        </div>
+
+        <div id="view-entries" class="tab-content card">
+            <h2>View Entries</h2>
+             <div class="filter-controls">
+                <select id="filterType">
+                    <option value="all">All Types</option>
+                    <option value="expense">Expenses</option>
+                    <option value="income">Income</option>
+                </select>
+                 <select id="filterCategory">
+                    <option value="all">All Categories</option>
+                    <!-- Options populated from settings -->
+                </select>
+                 <input type="date" id="filterStartDate">
+                 <input type="date" id="filterEndDate">
+                 <input type="text" id="filterSearch" placeholder="Search vendor/description">
+                 <button id="applyFilters">Apply Filters</button>
+                 <button id="resetFilters" class="secondary">Reset Filters</button>
+            </div>
+            <ul id="expenseList">
+                <!-- Expense entries will be loaded here -->
+            </ul>
+             <ul id="incomeList">
+                <!-- Income entries will be loaded here -->
+            </ul>
+        </div>
+
+        <div id="reports" class="tab-content card">
+            <h2>Reports</h2>
+             <div class="filter-controls">
+                <select id="reportType">
+                    <option value="expense">Expense Report</option>
+                    <option value="income">Income Report</option>
+                </select>
+                 <select id="reportPeriod">
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="annually">Annually</option>
+                    <option value="custom">Custom Date Range</option>
+                </select>
+                 <input type="date" id="reportStartDate" style="display: none;">
+                 <input type="date" id="reportEndDate" style="display: none;">
+                 <button id="generateReport">Generate Report</button>
+            </div>
+            <div class="total-summary">
+                Total for Period: <span id="reportTotal">$0.00</span>
+            </div>
+            <canvas id="reportChart"></canvas>
+             <button id="exportCsv" class="secondary">Export CSV</button>
+             <button id="exportJson" class="secondary">Export JSON</button>
+        </div>
+
+        <div id="settings" class="tab-content card">
+            <h2>Settings</h2>
+            <div class="settings-section">
+                <h3>Categories</h3>
+                <div class="form-group">
+                    <input type="text" id="newCategoryName" placeholder="New Category Name">
+                    <button id="addCategory">Add Category</button>
+                </div>
+                <ul id="categoryList">
+                    <!-- Categories will be loaded here -->
+                </ul>
+            </div>
+             <div class="settings-section">
+                <h3>Payment Methods</h3>
+                <div class="form-group">
+                    <input type="text" id="newPaymentMethodName" placeholder="New Payment Method Name">
+                    <button id="addPaymentMethod">Add Payment Method</button>
+                </div>
+                <ul id="paymentMethodList">
+                    <!-- Payment methods will be loaded here -->
+                </ul>
+            </div>
+             <div class="settings-section">
+                <h3>Data Management</h3>
+                <button id="exportAllData" class="secondary">Export All Data (JSON)</button>
+                <input type="file" id="importAllData" accept=".json" style="display: none;">
+                <button id="triggerImport" class="secondary">Import Data (JSON)</button>
+                 <button id="clearAllData" class="danger">Clear All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="theme-switcher">
+        <label for="themeToggle">Dark Theme:</label>
+        <input type="checkbox" id="themeToggle">
+    </div>
+
+    <script>
+        const DB_NAME = 'BizExpenseTrackerDB';
+        const DB_VERSION = 1;
+        let db;
+
+        const entryForm = document.getElementById('entryForm');
+        const entryType = document.getElementById('entryType');
+        const entryDate = document.getElementById('entryDate');
+        const entryCategory = document.getElementById('entryCategory');
+        const entryAmount = document.getElementById('entryAmount');
+        const entryVendor = document.getElementById('entryVendor');
+        const entryDescription = document.getElementById('entryDescription');
+        const entryPaymentMethod = document.getElementById('entryPaymentMethod');
+        const entryReceipt = document.getElementById('entryReceipt');
+        const entryReimbursable = document.getElementById('entryReimbursable');
+        const entryBilledToClient = document.getElementById('entryBilledToClient');
+        const entryRecurring = document.getElementById('entryRecurring');
+        const recurringOptions = document.querySelector('.recurring-options');
+        const recurringFrequency = document.getElementById('recurringFrequency');
+        const expenseOnlyFields = document.querySelectorAll('.expense-only');
+
+        const expenseList = document.getElementById('expenseList');
+        const incomeList = document.getElementById('incomeList');
+
+        const filterType = document.getElementById('filterType');
+        const filterCategory = document.getElementById('filterCategory');
+        const filterStartDate = document.getElementById('filterStartDate');
+        const filterEndDate = document.getElementById('filterEndDate');
+        const filterSearch = document.getElementById('filterSearch');
+        const applyFiltersButton = document.getElementById('applyFilters');
+        const resetFiltersButton = document.getElementById('resetFilters');
+
+        const reportType = document.getElementById('reportType');
+        const reportPeriod = document.getElementById('reportPeriod');
+        const reportStartDate = document.getElementById('reportStartDate');
+        const reportEndDate = document.getElementById('reportEndDate');
+        const generateReportButton = document.getElementById('generateReport');
+        const reportTotalSpan = document.getElementById('reportTotal');
+        const reportChartCanvas = document.getElementById('reportChart');
+        const exportCsvButton = document.getElementById('exportCsv');
+        const exportJsonButton = document.getElementById('exportJson');
+        let reportChart;
+
+        const newCategoryNameInput = document.getElementById('newCategoryName');
+        const addCategoryButton = document.getElementById('addCategory');
+        const categoryListUl = document.getElementById('categoryList');
+
+        const newPaymentMethodNameInput = document.getElementById('newPaymentMethodName');
+        const addPaymentMethodButton = document.getElementById('addPaymentMethod');
+        const paymentMethodListUl = document.getElementById('paymentMethodList');
+
+        const exportAllDataButton = document.getElementById('exportAllData');
+        const importAllDataInput = document.getElementById('importAllData');
+        const triggerImportButton = document.getElementById('triggerImport');
+        const clearAllDataButton = document.getElementById('clearAllData');
+
+        const dashboardTotalExpensesSpan = document.getElementById('dashboardTotalExpenses');
+        const dashboardTotalIncomeSpan = document.getElementById('dashboardTotalIncome');
+        const dashboardNetBalanceSpan = document.getElementById('dashboardNetBalance');
+
+        const themeToggle = document.getElementById('themeToggle');
+
+        // IndexedDB Setup
+        function openDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    if (!db.objectStoreNames.contains('entries')) {
+                        const entryStore = db.createObjectStore('entries', { keyPath: 'id', autoIncrement: true });
+                        entryStore.createIndex('date', 'date', { unique: false });
+                        entryStore.createIndex('type', 'type', { unique: false });
+                        entryStore.createIndex('category', 'category', { unique: false });
+                        entryStore.createIndex('date_type', ['date', 'type'], { unique: false });
+                    }
+                     if (!db.objectStoreNames.contains('settings')) {
+                        const settingsStore = db.createObjectStore('settings', { keyPath: 'key' });
+                    }
+                };
+
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    console.log('Database opened successfully');
+                    resolve(db);
+                };
+
+                request.onerror = (event) => {
+                    console.error('Database error:', event.target.errorCode);
+                    reject(event.target.errorCode);
+                };
+            });
+        }
+
+        async function addEntry(entry) {
+            const tx = db.transaction('entries', 'readwrite');
+            const store = tx.objectStore('entries');
+            await store.add(entry);
+            await tx.complete;
+            console.log('Entry added:', entry);
+            await loadEntries(); // Reload entries after adding
+            await updateDashboardSummary(); // Update dashboard
+        }
+
+        async function getEntries(filter = {}) {
+            const tx = db.transaction('entries', 'readonly');
+            const store = tx.objectStore('entries');
+            let request;
+
+            if (filter.startDate && filter.endDate && filter.type) {
+                 const index = store.index('date_type');
+                 request = index.openCursor(IDBKeyRange.bound([filter.startDate, filter.type], [filter.endDate, filter.type + '\xff']));
+            } else if (filter.startDate && filter.endDate) {
+                 const index = store.index('date');
+                 request = index.openCursor(IDBKeyRange.bound(filter.startDate, filter.endDate));
+            } else if (filter.type) {
+                 const index = store.index('type');
+                 request = index.openCursor(IDBKeyRange.only(filter.type));
+            } else {
+                request = store.openCursor();
+            }
+
+
+            const entries = [];
+            return new Promise((resolve, reject) => {
+                request.onsuccess = (event) => {
+                    const cursor = event.target.result;
+                    if (cursor) {
+                        let match = true;
+                        if (filter.category && filter.category !== 'all' && cursor.value.category !== filter.category) {
+                            match = false;
+                        }
+                         if (filter.search) {
+                            const searchTerm = filter.search.toLowerCase();
+                            if (!cursor.value.vendor?.toLowerCase().includes(searchTerm) && !cursor.value.description?.toLowerCase().includes(searchTerm)) {
+                                match = false;
+                            }
+                         }
+
+                        if (match) {
+                            entries.push(cursor.value);
+                        }
+                        cursor.continue();
+                    } else {
+                        resolve(entries);
+                    }
+                };
+
+                request.onerror = (event) => {
+                    reject(event.target.errorCode);
+                };
+            });
+        }
+
+        async function deleteEntry(id) {
+            const tx = db.transaction('entries', 'readwrite');
+            const store = tx.objectStore('entries');
+            await store.delete(id);
+            await tx.complete;
+            console.log('Entry deleted:', id);
+            await loadEntries(); // Reload entries after deleting
+            await updateDashboardSummary(); // Update dashboard
+        }
+
+         async function updateEntry(entry) {
+            const tx = db.transaction('entries', 'readwrite');
+            const store = tx.objectStore('entries');
+            await store.put(entry);
+            await tx.complete;
+            console.log('Entry updated:', entry);
+            await loadEntries(); // Reload entries after updating
+            await updateDashboardSummary(); // Update dashboard
+        }
+
+        async function getSetting(key, defaultValue) {
+            const tx = db.transaction('settings', 'readonly');
+            const store = tx.objectStore('settings');
+            const request = store.get(key);
+            return new Promise((resolve) => {
+                request.onsuccess = (event) => {
+                    const result = event.target.result;
+                    resolve(result ? result.value : defaultValue);
+                };
+                 request.onerror = () => {
+                    resolve(defaultValue); // Resolve with default on error
+                 }
+            });
+        }
+
+        async function setSetting(key, value) {
+            const tx = db.transaction('settings', 'readwrite');
+            const store = tx.objectStore('settings');
+            await store.put({ key: key, value: value });
+            await tx.complete;
+            console.log('Setting saved:', key, value);
+        }
+
+        // UI Functions
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            document.querySelector(`.tab-button[data-tab="${tabId}"]`).classList.add('active');
+
+            // Load data when switching to relevant tabs
+            if (tabId === 'view-entries') {
+                loadEntries();
+            } else if (tabId === 'reports') {
+                 // Initial report generation might be needed or wait for user action
+            } else if (tabId === 'settings') {
+                 loadSettings();
+            } else if (tabId === 'dashboard') {
+                 updateDashboardSummary();
+            }
+        }
+
+        async function loadEntries(filter = {}) {
+            const entries = await getEntries(filter);
+            expenseList.innerHTML = '';
+            incomeList.innerHTML = '';
+
+            const filteredExpenses = entries.filter(entry => entry.type === 'expense');
+            const filteredIncome = entries.filter(entry => entry.type === 'income');
+
+            if (filter.type === 'income') {
+                 expenseList.style.display = 'none';
+                 incomeList.style.display = 'block';
+            } else if (filter.type === 'expense') {
+                 expenseList.style.display = 'block';
+                 incomeList.style.display = 'none';
+            } else {
+                 expenseList.style.display = 'block';
+                 incomeList.style.display = 'block';
+            }
+
+
+            filteredExpenses.forEach(entry => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span><strong>Date:</strong> ${entry.date}</span>
+                    <span><strong>Category:</strong> ${entry.category}</span>
+                    <span><strong>Amount:</strong> $${entry.amount.toFixed(2)}</span>
+                    <span><strong>Vendor:</strong> ${entry.vendor || 'N/A'}</span>
+                    <span><strong>Description:</strong> ${entry.description || 'N/A'}</span>
+                    <span><strong>Payment:</strong> ${entry.paymentMethod || 'N/A'}</span>
+                    ${entry.reimbursable ? '<span>(Reimbursable)</span>' : ''}
+                    ${entry.billedToClient ? '<span>(Billed)</span>' : ''}
+                    ${entry.recurring ? '<span>(Recurring: ' + entry.recurringFrequency + ')</span>' : ''}
+                    ${entry.receipt ? `<a href="${entry.receipt}" target="_blank">View Receipt</a>` : ''}
+                    <div class="actions">
+                        <button class="secondary edit-entry" data-id="${entry.id}" data-type="expense">Edit</button>
+                        <button class="danger delete-entry" data-id="${entry.id}" data-type="expense">Delete</button>
+                    </div>
+                `;
+                expenseList.appendChild(li);
+            });
+
+             filteredIncome.forEach(entry => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span><strong>Date:</strong> ${entry.date}</span>
+                    <span><strong>Category:</strong> ${entry.category}</span>
+                    <span><strong>Amount:</strong> $${entry.amount.toFixed(2)}</span>
+                    <span><strong>Source:</strong> ${entry.vendor || 'N/A'}</span>
+                    <span><strong>Description:</strong> ${entry.description || 'N/A'}</span>
+                    <span><strong>Method:</strong> ${entry.paymentMethod || 'N/A'}</span>
+                     ${entry.recurring ? '<span>(Recurring: ' + entry.recurringFrequency + ')</span>' : ''}
+                    ${entry.receipt ? `<a href="${entry.receipt}" target="_blank">View Invoice</a>` : ''}
+                    <div class="actions">
+                        <button class="secondary edit-entry" data-id="${entry.id}" data-type="income">Edit</button>
+                        <button class="danger delete-entry" data-id="${entry.id}" data-type="income">Delete</button>
+                    </div>
+                `;
+                incomeList.appendChild(li);
+            });
+
+             // Add event listeners for delete and edit buttons
+            document.querySelectorAll('.delete-entry').forEach(button => {
+                button.onclick = async () => {
+                    if (confirm('Are you sure you want to delete this entry?')) {
+                        const id = parseInt(button.dataset.id);
+                        await deleteEntry(id);
+                    }
+                };
+            });
+
+             document.querySelectorAll('.edit-entry').forEach(button => {
+                button.onclick = async () => {
+                    const id = parseInt(button.dataset.id);
+                    const type = button.dataset.type;
+                    // Find the entry to populate the form
+                    const entries = await getEntries({ type: type });
+                    const entryToEdit = entries.find(entry => entry.id === id);
+
+                    if (entryToEdit) {
+                        // Populate the form for editing
+                        entryForm.dataset.editingId = id;
+                        entryType.value = entryToEdit.type;
+                        entryDate.value = entryToEdit.date;
+                        entryCategory.value = entryToEdit.category;
+                        entryAmount.value = entryToEdit.amount;
+                        entryVendor.value = entryToEdit.vendor || '';
+                        entryDescription.value = entryToEdit.description || '';
+                        entryPaymentMethod.value = entryToEdit.paymentMethod || '';
+                        entryReimbursable.checked = entryToEdit.reimbursable || false;
+                        entryBilledToClient.checked = entryToEdit.billedToClient || false;
+                        entryRecurring.checked = entryToEdit.recurring || false;
+                        recurringFrequency.value = entryToEdit.recurringFrequency || 'monthly';
+
+                        // Show/hide recurring options and expense-only fields
+                        if (entryRecurring.checked) {
+                            recurringOptions.style.display = 'block';
+                        } else {
+                            recurringOptions.style.display = 'none';
+                        }
+                         if (entryType.value === 'expense') {
+                            expenseOnlyFields.forEach(field => field.style.display = 'block');
+                        } else {
+                            expenseOnlyFields.forEach(field => field.style.display = 'none');
+                        }
+
+
+                        // Change button text
+                        entryForm.querySelector('button[type="submit"]').textContent = 'Update Entry';
+
+                        // Switch to add-entry tab
+                        switchTab('add-entry');
+                    }
+                };
+            });
+        }
+
+        async function loadSettings() {
+            const categories = await getSetting('categories', ['Groceries', 'Utilities', 'Rent', 'Salary', 'Freelance Income']);
+            const paymentMethods = await getSetting('paymentMethods', ['Cash', 'Credit Card', 'Bank Transfer', 'Online Payment']);
+
+            categoryListUl.innerHTML = '';
+            categories.forEach(category => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${category}</span>
+                    <button class="danger delete-setting" data-type="category" data-value="${category}">Delete</button>
+                `;
+                categoryListUl.appendChild(li);
+            });
+
+            paymentMethodListUl.innerHTML = '';
+            paymentMethods.forEach(method => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${method}</span>
+                    <button class="danger delete-setting" data-type="paymentMethod" data-value="${method}">Delete</button>
+                `;
+                paymentMethodListUl.appendChild(li);
+            });
+
+            // Populate category and payment method dropdowns
+            populateDropdowns();
+
+             // Add event listeners for delete buttons
+            document.querySelectorAll('.delete-setting').forEach(button => {
+                button.onclick = async () => {
+                    const type = button.dataset.type;
+                    const value = button.dataset.value;
+                    if (confirm(`Are you sure you want to delete the ${type} "${value}"?`)) {
+                        if (type === 'category') {
+                            let currentCategories = await getSetting('categories', []);
+                            currentCategories = currentCategories.filter(cat => cat !== value);
+                            await setSetting('categories', currentCategories);
+                        } else if (type === 'paymentMethod') {
+                            let currentMethods = await getSetting('paymentMethods', []);
+                            currentMethods = currentMethods.filter(method => method !== value);
+                            await setSetting('paymentMethods', currentMethods);
+                        }
+                        loadSettings(); // Reload settings list
+                    }
+                };
+            });
+        }
+
+        async function populateDropdowns() {
+            const categories = await getSetting('categories', ['Groceries', 'Utilities', 'Rent', 'Salary', 'Freelance Income']);
+            const paymentMethods = await getSetting('paymentMethods', ['Cash', 'Credit Card', 'Bank Transfer', 'Online Payment']);
+
+            // Clear existing options (except the default 'all' for filters)
+            entryCategory.innerHTML = '';
+            filterCategory.innerHTML = '<option value="all">All Categories</option>';
+            entryPaymentMethod.innerHTML = '';
+
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                entryCategory.appendChild(option);
+
+                const filterOption = document.createElement('option');
+                filterOption.value = category;
+                filterOption.textContent = category;
+                filterCategory.appendChild(filterOption);
+            });
+
+             paymentMethods.forEach(method => {
+                const option = document.createElement('option');
+                option.value = method;
+                option.textContent = method;
+                entryPaymentMethod.appendChild(option);
+            });
+        }
+
+        async function updateDashboardSummary() {
+            const allEntries = await getEntries();
+            const totalExpenses = allEntries
+                .filter(entry => entry.type === 'expense')
+                .reduce((sum, entry) => sum + entry.amount, 0);
+            const totalIncome = allEntries
+                .filter(entry => entry.type === 'income')
+                .reduce((sum, entry) => sum + entry.amount, 0);
+            const netBalance = totalIncome - totalExpenses;
+
+            dashboardTotalExpensesSpan.textContent = `$${totalExpenses.toFixed(2)}`;
+            dashboardTotalIncomeSpan.textContent = `$${totalIncome.toFixed(2)}`;
+            dashboardNetBalanceSpan.textContent = `$${netBalance.toFixed(2)}`;
+        }
+
+        async function generateReport() {
+            const type = reportType.value;
+            const period = reportPeriod.value;
+            let startDate = null;
+            let endDate = null;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (period === 'monthly') {
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            } else if (period === 'quarterly') {
+                const currentMonth = today.getMonth();
+                const quarter = Math.floor(currentMonth / 3);
+                startDate = new Date(today.getFullYear(), quarter * 3, 1);
+                endDate = new Date(today.getFullYear(), quarter * 3 + 3, 0);
+            } else if (period === 'annually') {
+                startDate = new Date(today.getFullYear(), 0, 1);
+                endDate = new Date(today.getFullYear(), 11, 31);
+            } else if (period === 'custom') {
+                startDate = reportStartDate.value ? new Date(reportStartDate.value) : null;
+                endDate = reportEndDate.value ? new Date(reportEndDate.value) : null;
+            }
+
+             // Format dates to YYYY-MM-DD for IndexedDB filtering
+            const formattedStartDate = startDate ? startDate.toISOString().split('T')[0] : null;
+            const formattedEndDate = endDate ? endDate.toISOString().split('T')[0] : null;
+
+
+            const filter = {
+                type: type,
+                startDate: formattedStartDate,
+                endDate: formattedEndDate
+            };
+
+            const entries = await getEntries(filter);
+
+            const total = entries.reduce((sum, entry) => sum + entry.amount, 0);
+            reportTotalSpan.textContent = `$${total.toFixed(2)}`;
+
+            // Prepare data for Chart.js (e.g., by category)
+            const categoryData = entries.reduce((acc, entry) => {
+                acc[entry.category] = (acc[entry.category] || 0) + entry.amount;
+                return acc;
+            }, {});
+
+            const chartLabels = Object.keys(categoryData);
+            const chartData = Object.values(categoryData);
+
+            if (reportChart) {
+                reportChart.destroy(); // Destroy previous chart instance
+            }
+
+            reportChart = new Chart(reportChartCanvas, {
+                type: 'bar', // or 'pie'
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: `${type === 'expense' ? 'Expenses' : 'Income'} by Category`,
+                        data: chartData,
+                        backgroundColor: type === 'expense' ? 'rgba(255, 99, 132, 0.6)' : 'rgba(75, 192, 192, 0.6)',
+                        borderColor: type === 'expense' ? 'rgba(255, 99, 132, 1)' : 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportToCsv(data, filename) {
+            const csvRows = [];
+            const headers = Object.keys(data[0]);
+            csvRows.push(headers.join(','));
+
+            for (const row of data) {
+                const values = headers.map(header => {
+                    const value = row[header];
+                    // Handle potential commas or quotes in data
+                    const escaped = ('' + value).replace(/"/g, '"');
+                    return `"${escaped}"`;
+                });
+                csvRows.push(values.join(','));
+            }
+
+            const csvString = csvRows.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', filename);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+         function exportToJson(data, filename) {
+            const jsonString = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', filename);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        async function importFromJson(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (!Array.isArray(data.entries) || !Array.isArray(data.settings)) {
+                            throw new Error("Invalid JSON format. Expected { entries: [], settings: [] }");
+                        }
+
+                        const tx = db.transaction(['entries', 'settings'], 'readwrite');
+                        const entryStore = tx.objectStore('entries');
+                        const settingsStore = tx.objectStore('settings');
+
+                        // Clear existing data (optional, but safer for import)
+                        await entryStore.clear();
+                        await settingsStore.clear();
+
+                        // Add imported entries
+                        for (const entry of data.entries) {
+                            // Remove existing ID to let IndexedDB assign a new one
+                            delete entry.id;
+                            await entryStore.add(entry);
+                        }
+
+                        // Add imported settings
+                        for (const setting of data.settings) {
+                             await settingsStore.put(setting);
+                        }
+
+                        await tx.complete;
+                        console.log('Data imported successfully');
+                        resolve();
+                    } catch (error) {
+                        console.error('Import failed:', error);
+                        reject(error);
+                    }
+                };
+                reader.onerror = (event) => {
+                    reject(event.target.error);
+                };
+                reader.readAsText(file);
+            });
+        }
+
+
+        // Event Listeners
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                switchTab(button.dataset.tab);
+            });
+        });
+
+        entryType.addEventListener('change', () => {
+            if (entryType.value === 'expense') {
+                expenseOnlyFields.forEach(field => field.style.display = 'block');
+            } else {
+                expenseOnlyFields.forEach(field => field.style.display = 'none');
+            }
+        });
+
+        entryRecurring.addEventListener('change', () => {
+            if (entryRecurring.checked) {
+                recurringOptions.style.display = 'block';
+            } else {
+                recurringOptions.style.display = 'none';
+            }
+        });
+
+        entryForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const id = entryForm.dataset.editingId ? parseInt(entryForm.dataset.editingId) : null;
+            const type = entryType.value;
+            const date = entryDate.value;
+            const category = entryCategory.value;
+            const amount = parseFloat(entryAmount.value);
+            const vendor = entryVendor.value.trim();
+            const description = entryDescription.value.trim();
+            const paymentMethod = entryPaymentMethod.value;
+            const reimbursable = entryReimbursable.checked;
+            const billedToClient = entryBilledToClient.checked;
+            const recurring = entryRecurring.checked;
+            const recurringFrequencyValue = recurring ? recurringFrequency.value : null;
+
+            let receiptDataUrl = null;
+            if (entryReceipt.files.length > 0) {
+                const file = entryReceipt.files[0];
+                receiptDataUrl = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            const entry = {
+                type: type,
+                date: date,
+                category: category,
+                amount: amount,
+                vendor: vendor,
+                description: description,
+                paymentMethod: paymentMethod,
+                receipt: receiptDataUrl,
+                reimbursable: type === 'expense' ? reimbursable : false,
+                billedToClient: type === 'expense' ? billedToClient : false,
+                recurring: recurring,
+                recurringFrequency: recurringFrequencyValue,
+                createdAt: id ? entryForm.dataset.createdAt : new Date().toISOString() // Preserve creation date on edit
+            };
+
+            if (id) {
+                 entry.id = id; // Add ID back for update
+                 await updateEntry(entry);
+                 delete entryForm.dataset.editingId; // Clear editing state
+                 entryForm.querySelector('button[type="submit"]').textContent = 'Add Entry'; // Reset button text
+            } else {
+                 await addEntry(entry);
+            }
+
+
+            entryForm.reset();
+            recurringOptions.style.display = 'none'; // Hide recurring options after submit
+            expenseOnlyFields.forEach(field => field.style.display = 'block'); // Reset expense-only display
+        });
+
+        applyFiltersButton.addEventListener('click', () => {
+            const filter = {
+                type: filterType.value === 'all' ? null : filterType.value,
+                category: filterCategory.value,
+                startDate: filterStartDate.value,
+                endDate: filterEndDate.value,
+                search: filterSearch.value.trim()
+            };
+            loadEntries(filter);
+        });
+
+        resetFiltersButton.addEventListener('click', () => {
+            filterType.value = 'all';
+            filterCategory.value = 'all';
+            filterStartDate.value = '';
+            filterEndDate.value = '';
+            filterSearch.value = '';
+            loadEntries(); // Load all entries
+        });
+
+        reportPeriod.addEventListener('change', () => {
+            if (reportPeriod.value === 'custom') {
+                reportStartDate.style.display = 'inline-block';
+                reportEndDate.style.display = 'inline-block';
+            } else {
+                reportStartDate.style.display = 'none';
+                reportEndDate.style.display = 'none';
+            }
+        });
+
+        generateReportButton.addEventListener('click', generateReport);
+
+        exportCsvButton.addEventListener('click', async () => {
+            const type = reportType.value;
+            const period = reportPeriod.value;
+            let startDate = null;
+            let endDate = null;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (period === 'monthly') {
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            } else if (period === 'quarterly') {
+                const currentMonth = today.getMonth();
+                const quarter = Math.floor(currentMonth / 3);
+                startDate = new Date(today.getFullYear(), quarter * 3, 1);
+                endDate = new Date(today.getFullYear(), quarter * 3 + 3, 0);
+            } else if (period === 'annually') {
+                startDate = new Date(today.getFullYear(), 0, 1);
+                endDate = new Date(today.getFullYear(), 11, 31);
+            } else if (period === 'custom') {
+                startDate = reportStartDate.value ? new Date(reportStartDate.value) : null;
+                endDate = reportEndDate.value ? new Date(reportEndDate.value) : null;
+            }
+
+             const formattedStartDate = startDate ? startDate.toISOString().split('T')[0] : null;
+            const formattedEndDate = endDate ? endDate.toISOString().split('T')[0] : null;
+
+            const filter = {
+                type: type,
+                startDate: formattedStartDate,
+                endDate: formattedEndDate
+            };
+
+            const entries = await getEntries(filter);
+            exportToCsv(entries, `${type}_report_${period}.csv`);
+        });
+
+         exportJsonButton.addEventListener('click', async () => {
+            const type = reportType.value;
+            const period = reportPeriod.value;
+            let startDate = null;
+            let endDate = null;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (period === 'monthly') {
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            } else if (period === 'quarterly') {
+                const currentMonth = today.getMonth();
+                const quarter = Math.floor(currentMonth / 3);
+                startDate = new Date(today.getFullYear(), quarter * 3, 1);
+                endDate = new Date(today.getFullYear(), quarter * 3 + 3, 0);
+            } else if (period === 'annually') {
+                startDate = new Date(today.getFullYear(), 0, 1);
+                endDate = new Date(today.getFullYear(), 11, 31);
+            } else if (period === 'custom') {
+                startDate = reportStartDate.value ? new Date(reportStartDate.value) : null;
+                endDate = reportEndDate.value ? new Date(reportEndDate.value) : null;
+            }
+
+             const formattedStartDate = startDate ? startDate.toISOString().split('T')[0] : null;
+            const formattedEndDate = endDate ? endDate.toISOString().split('T')[0] : null;
+
+            const filter = {
+                type: type,
+                startDate: formattedStartDate,
+                endDate: formattedEndDate
+            };
+
+            const entries = await getEntries(filter);
+            exportToJson(entries, `${type}_report_${period}.json`);
+        });
+
+
+        addCategoryButton.addEventListener('click', async () => {
+            const newCategory = newCategoryNameInput.value.trim();
+            if (newCategory) {
+                const categories = await getSetting('categories', []);
+                if (!categories.includes(newCategory)) {
+                    categories.push(newCategory);
+                    await setSetting('categories', categories);
+                    newCategoryNameInput.value = '';
+                    loadSettings(); // Reload settings list and dropdowns
+                } else {
+                    alert('Category already exists.');
+                }
+            }
+        });
+
+         addPaymentMethodButton.addEventListener('click', async () => {
+            const newMethod = newPaymentMethodNameInput.value.trim();
+            if (newMethod) {
+                const methods = await getSetting('paymentMethods', []);
+                if (!methods.includes(newMethod)) {
+                    methods.push(newMethod);
+                    await setSetting('paymentMethods', methods);
+                    newPaymentMethodNameInput.value = '';
+                    loadSettings(); // Reload settings list and dropdowns
+                } else {
+                    alert('Payment method already exists.');
+                }
+            }
+        });
+
+        exportAllDataButton.addEventListener('click', async () => {
+            const allEntries = await getEntries();
+            const allSettings = await new Promise((resolve, reject) => {
+                 const tx = db.transaction('settings', 'readonly');
+                 const store = tx.objectStore('settings');
+                 const request = store.getAll();
+                 request.onsuccess = (event) => resolve(event.target.result);
+                 request.onerror = (event) => reject(event.target.errorCode);
+            });
+            const dataToExport = {
+                entries: allEntries,
+                settings: allSettings
+            };
+            exportToJson(dataToExport, 'bizexpense_tracker_data.json');
+        });
+
+        triggerImportButton.addEventListener('click', () => {
+            importAllDataInput.click(); // Trigger the hidden file input
+        });
+
+        importAllDataInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                if (confirm('Importing data will replace all existing data. Are you sure?')) {
+                    try {
+                        await importFromJson(file);
+                        alert('Data imported successfully!');
+                        // Reload relevant sections after import
+                        loadEntries();
+                        loadSettings();
+                        updateDashboardSummary();
+                        switchTab('dashboard'); // Go back to dashboard
+                    } catch (error) {
+                        alert('Failed to import data: ' + error.message);
+                    }
+                }
+            }
+             // Clear the file input so the same file can be selected again
+            event.target.value = '';
+        });
+
+
+        clearAllDataButton.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to clear ALL data (entries and settings)? This action cannot be undone.')) {
+                try {
+                    const tx = db.transaction(['entries', 'settings'], 'readwrite');
+                    await tx.objectStore('entries').clear();
+                    await tx.objectStore('settings').clear();
+                    await tx.complete;
+                    alert('All data cleared successfully!');
+                    // Reload relevant sections after clearing
+                    loadEntries();
+                    loadSettings();
+                    updateDashboardSummary();
+                    switchTab('dashboard'); // Go back to dashboard
+                } catch (error) {
+                    console.error('Failed to clear data:', error);
+                    alert('Failed to clear data.');
+                }
+            }
+        });
+
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                document.body.classList.add('dark-theme');
+                setSetting('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-theme');
+                setSetting('theme', 'light');
+            }
+        });
+
+        // Initialize the app
+        async function init() {
+            await openDatabase();
+            await populateDropdowns(); // Populate dropdowns on startup
+            await loadSettings(); // Load settings on startup
+            await loadEntries(); // Load entries on startup
+            await updateDashboardSummary(); // Update dashboard on startup
+
+            // Load saved theme preference
+            const savedTheme = await getSetting('theme', 'light');
+            if (savedTheme === 'dark') {
+                themeToggle.checked = true;
+                document.body.classList.add('dark-theme');
+            } else {
+                 themeToggle.checked = false;
+                 document.body.classList.remove('dark-theme');
+            }
+
+            // Check for recurring entries and add new ones if due
+            await processRecurringEntries();
+        }
+
+        async function processRecurringEntries() {
+            const allEntries = await getEntries();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayString = today.toISOString().split('T')[0];
+
+            const recurringEntries = allEntries.filter(entry => entry.recurring);
+
+            for (const entry of recurringEntries) {
+                const lastOccurrenceDate = new Date(entry.date);
+                lastOccurrenceDate.setHours(0, 0, 0, 0);
+
+                let nextOccurrenceDate = new Date(lastOccurrenceDate);
+
+                if (entry.recurringFrequency === 'daily') {
+                    nextOccurrenceDate.setDate(lastOccurrenceDate.getDate() + 1);
+                } else if (entry.recurringFrequency === 'weekly') {
+                    nextOccurrenceDate.setDate(lastOccurrenceDate.getDate() + 7);
+                } else if (entry.recurringFrequency === 'monthly') {
+                    nextOccurrenceDate.setMonth(lastOccurrenceDate.getMonth() + 1);
+                } else if (entry.recurringFrequency === 'annually') {
+                    nextOccurrenceDate.setFullYear(lastOccurrenceDate.getFullYear() + 1);
+                }
+
+                 // Ensure the next occurrence is not before the last one (handles month end issues)
+                 if (nextOccurrenceDate <= lastOccurrenceDate) {
+                     // If adding a month/year resulted in the same or earlier date (e.g., Jan 31 + 1 month = Mar 3),
+                     // try adding days to get to the next month/year
+                     nextOccurrenceDate = new Date(lastOccurrenceDate);
+                     if (entry.recurringFrequency === 'monthly') {
+                         nextOccurrenceDate.setDate(lastOccurrenceDate.getDate() + 30); // Approximation
+                     } else if (entry.recurringFrequency === 'annually') {
+                         nextOccurrenceDate.setDate(lastOccurrenceDate.getDate() + 365); // Approximation
+                     }
+                 }
+
+
+                // Check if the next occurrence date is today or in the past (meaning it's due)
+                // And ensure we don't add duplicates for the same day
+                if (nextOccurrenceDate <= today) {
+                    // Check if an entry with the same details already exists for today
+                    const existingEntriesToday = allEntries.filter(e =>
+                        e.date === todayString &&
+                        e.type === entry.type &&
+                        e.category === entry.category &&
+                        e.amount === entry.amount &&
+                        e.vendor === entry.vendor &&
+                        e.description === entry.description
+                        // Note: Payment method, receipt, reimbursable/billed might differ, so don't check those
+                    );
+
+                    if (existingEntriesToday.length === 0) {
+                         console.log('Adding recurring entry for:', entry.description, 'on', todayString);
+                        // Create a new entry for today
+                        const newEntry = {
+                            type: entry.type,
+                            date: todayString,
+                            category: entry.category,
+                            amount: entry.amount,
+                            vendor: entry.vendor,
+                            description: entry.description,
+                            paymentMethod: entry.paymentMethod, // Use the last payment method
+                            receipt: null, // Don't copy receipt for recurring
+                            reimbursable: entry.reimbursable,
+                            billedToClient: entry.billedToClient,
+                            recurring: true, // Keep it recurring
+                            recurringFrequency: entry.recurringFrequency,
+                            createdAt: new Date().toISOString()
+                        };
+                        await addEntry(newEntry);
+
+                        // Update the original recurring entry's date to today
+                        // This ensures the *next* recurring date is calculated from today
+                        const updatedOriginalEntry = { ...entry, date: todayString };
+                        await updateEntry(updatedOriginalEntry);
+                    } else {
+                         console.log('Recurring entry already exists for today:', entry.description);
+                         // If an entry exists for today, update the original recurring entry's date to today
+                         // to prevent adding duplicates if the app wasn't opened for a while
+                         const updatedOriginalEntry = { ...entry, date: todayString };
+                         await updateEntry(updatedOriginalEntry);
+                    }
+                }
+            }
+        }
+
+
+        // Run initialization
+        init();
+
+    </script>
+</body>
+</html>
+
+<script>
+
+// Add Backup and Restore Icons
+const header = document.querySelector('header');
+const backupRestoreContainer = document.createElement('div');
+backupRestoreContainer.style.position = 'absolute';
+backupRestoreContainer.style.top = '15px';
+backupRestoreContainer.style.right = '20px';
+backupRestoreContainer.style.display = 'flex';
+backupRestoreContainer.style.gap = '10px';
+
+const backupIcon = document.createElement('button');
+backupIcon.innerHTML = '💾'; // Floppy disk icon
+backupIcon.title = 'Backup Data';
+backupIcon.style.background = 'none';
+backupIcon.style.border = 'none';
+backupIcon.style.fontSize = '1.5em';
+backupIcon.style.cursor = 'pointer';
+backupIcon.style.color = 'white'; // Match header text color
+
+const restoreIcon = document.createElement('button');
+restoreIcon.innerHTML = '🔄'; // Sync/Restore icon
+restoreIcon.title = 'Restore Data';
+restoreIcon.style.background = 'none';
+restoreIcon.style.border = 'none';
+restoreIcon.style.fontSize = '1.5em';
+restoreIcon.style.cursor = 'pointer';
+restoreIcon.style.color = 'white'; // Match header text color
+
+backupRestoreContainer.appendChild(backupIcon);
+backupRestoreContainer.appendChild(restoreIcon);
+header.appendChild(backupRestoreContainer);
+
+// Trigger the hidden import input when restore icon is clicked
+restoreIcon.addEventListener('click', () => {
+    importAllDataInput.click();
+});
+
+// Trigger the export function when backup icon is clicked
+backupIcon.addEventListener('click', async () => {
+    const allEntries = await getEntries();
+    const allSettings = await new Promise((resolve, reject) => {
+         const tx = db.transaction('settings', 'readonly');
+         const store = tx.objectStore('settings');
+         const request = store.getAll();
+         request.onsuccess = (event) => resolve(event.target.result);
+         request.onerror = (event) => reject(event.target.errorCode);
+    });
+    const dataToExport = {
+        entries: allEntries,
+        settings: allSettings
+    };
+    exportToJson(dataToExport, 'bizexpense_tracker_data_backup.json');
+});
+
+
+// Change Currency Symbol to Rs.
+const currencySymbol = 'Rs.';
+
+// Update functions that display currency
+function formatCurrency(amount) {
+    return `${currencySymbol}${amount.toFixed(2)}`;
+}
+
+// Modify loadEntries to use Rs.
+async function loadEntries(filter = {}) {
+    const entries = await getEntries(filter);
+    expenseList.innerHTML = '';
+    incomeList.innerHTML = '';
+
+    const filteredExpenses = entries.filter(entry => entry.type === 'expense');
+    const filteredIncome = entries.filter(entry => entry.type === 'income');
+
+    if (filter.type === 'income') {
+         expenseList.style.display = 'none';
+         incomeList.style.display = 'block';
+    } else if (filter.type === 'expense') {
+         expenseList.style.display = 'block';
+         incomeList.style.display = 'none';
+    } else {
+         expenseList.style.display = 'block';
+         incomeList.style.display = 'block';
+    }
+
+
+    filteredExpenses.forEach(entry => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span><strong>Date:</strong> ${entry.date}</span>
+            <span><strong>Category:</strong> ${entry.category}</span>
+            <span><strong>Amount:</strong> ${formatCurrency(entry.amount)}</span>
+            <span><strong>Vendor:</strong> ${entry.vendor || 'N/A'}</span>
+            <span><strong>Description:</strong> ${entry.description || 'N/A'}</span>
+            <span><strong>Payment:</strong> ${entry.paymentMethod || 'N/A'}</span>
+            ${entry.reimbursable ? '<span>(Reimbursable)</span>' : ''}
+            ${entry.billedToClient ? '<span>(Billed)</span>' : ''}
+            ${entry.recurring ? '<span>(Recurring: ' + entry.recurringFrequency + ')</span>' : ''}
+            ${entry.receipt ? `<a href="${entry.receipt}" target="_blank">View Receipt</a>` : ''}
+            <div class="actions">
+                <button class="secondary edit-entry" data-id="${entry.id}" data-type="expense">Edit</button>
+                <button class="danger delete-entry" data-id="${entry.id}" data-type="expense">Delete</button>
+            </div>
+        `;
+        expenseList.appendChild(li);
+    });
+
+     filteredIncome.forEach(entry => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span><strong>Date:</strong> ${entry.date}</span>
+            <span><strong>Category:</strong> ${entry.category}</span>
+            <span><strong>Amount:</strong> ${formatCurrency(entry.amount)}</span>
+            <span><strong>Source:</strong> ${entry.vendor || 'N/A'}</span>
+            <span><strong>Description:</strong> ${entry.description || 'N/A'}</span>
+            <span><strong>Method:</strong> ${entry.paymentMethod || 'N/A'}</span>
+             ${entry.recurring ? '<span>(Recurring: ' + entry.recurringFrequency + ')</span>' : ''}
+            ${entry.receipt ? `<a href="${entry.receipt}" target="_blank">View Invoice</a>` : ''}
+            <div class="actions">
+                <button class="secondary edit-entry" data-id="${entry.id}" data-type="income">Edit</button>
+                <button class="danger delete-entry" data-id="${entry.id}" data-type="income">Delete</button>
+            </div>
+        `;
+        incomeList.appendChild(li);
+    });
+
+     // Add event listeners for delete and edit buttons
+    document.querySelectorAll('.delete-entry').forEach(button => {
+        button.onclick = async () => {
+            if (confirm('Are you sure you want to delete this entry?')) {
+                const id = parseInt(button.dataset.id);
+                await deleteEntry(id);
+            }
+        };
+    });
+
+     document.querySelectorAll('.edit-entry').forEach(button => {
+        button.onclick = async () => {
+            const id = parseInt(button.dataset.id);
+            const type = button.dataset.type;
+            // Find the entry to populate the form
+            const entries = await getEntries({ type: type });
+            const entryToEdit = entries.find(entry => entry.id === id);
+
+            if (entryToEdit) {
+                // Populate the form for editing
+                entryForm.dataset.editingId = id;
+                entryType.value = entryToEdit.type;
+                entryDate.value = entryToEdit.date;
+                entryCategory.value = entryToEdit.category;
+                entryAmount.value = entryToEdit.amount;
+                entryVendor.value = entryToEdit.vendor || '';
+                entryDescription.value = entryToEdit.description || '';
+                entryPaymentMethod.value = entryToEdit.paymentMethod || '';
+                entryReimbursable.checked = entryToEdit.reimbursable || false;
+                entryBilledToClient.checked = entryToEdit.billedToClient || false;
+                entryRecurring.checked = entryToEdit.recurring || false;
+                recurringFrequency.value = entryToEdit.recurringFrequency || 'monthly';
+
+                // Show/hide recurring options and expense-only fields
+                if (entryRecurring.checked) {
+                    recurringOptions.style.display = 'block';
+                } else {
+                    recurringOptions.style.display = 'none';
+                }
+                 if (entryType.value === 'expense') {
+                    expenseOnlyFields.forEach(field => field.style.display = 'block');
+                } else {
+                    expenseOnlyFields.forEach(field => field.style.display = 'none');
+                }
+
+
+                // Change button text
+                entryForm.querySelector('button[type="submit"]').textContent = 'Update Entry';
+
+                // Switch to add-entry tab
+                switchTab('add-entry');
+            }
+        };
+    });
+}
+
+// Modify updateDashboardSummary to use Rs.
+async function updateDashboardSummary() {
+    const allEntries = await getEntries();
+    const totalExpenses = allEntries
+        .filter(entry => entry.type === 'expense')
+        .reduce((sum, entry) => sum + entry.amount, 0);
+    const totalIncome = allEntries
+        .filter(entry => entry.type === 'income')
+        .reduce((sum, entry) => sum + entry.amount, 0);
+    const netBalance = totalIncome - totalExpenses;
+
+    dashboardTotalExpensesSpan.textContent = formatCurrency(totalExpenses);
+    dashboardTotalIncomeSpan.textContent = formatCurrency(totalIncome);
+    dashboardNetBalanceSpan.textContent = formatCurrency(netBalance);
+}
+
+// Modify generateReport to use Rs.
+async function generateReport() {
+    const type = reportType.value;
+    const period = reportPeriod.value;
+    let startDate = null;
+    let endDate = null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (period === 'monthly') {
+        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    } else if (period === 'quarterly') {
+        const currentMonth = today.getMonth();
+        const quarter = Math.floor(currentMonth / 3);
+        startDate = new Date(today.getFullYear(), quarter * 3, 1);
+        endDate = new Date(today.getFullYear(), quarter * 3 + 3, 0);
+    } else if (period === 'annually') {
+        startDate = new Date(today.getFullYear(), 0, 1);
+        endDate = new Date(today.getFullYear(), 11, 31);
+    } else if (period === 'custom') {
+        startDate = reportStartDate.value ? new Date(reportStartDate.value) : null;
+        endDate = reportEndDate.value ? new Date(reportEndDate.value) : null;
+    }
+
+     // Format dates to YYYY-MM-DD for IndexedDB filtering
+    const formattedStartDate = startDate ? startDate.toISOString().split('T')[0] : null;
+    const formattedEndDate = endDate ? endDate.toISOString().split('T')[0] : null;
+
+
+    const filter = {
+        type: type,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
+    };
+
+    const entries = await getEntries(filter);
+
+    const total = entries.reduce((sum, entry) => sum + entry.amount, 0);
+    reportTotalSpan.textContent = formatCurrency(total);
+
+    // Prepare data for Chart.js (e.g., by category)
+    const categoryData = entries.reduce((acc, entry) => {
+        acc[entry.category] = (acc[entry.category] || 0) + entry.amount;
+        return acc;
+    }, {});
+
+    const chartLabels = Object.keys(categoryData);
+    const chartData = Object.values(categoryData);
+
+    if (reportChart) {
+        reportChart.destroy(); // Destroy previous chart instance
+    }
+
+    reportChart = new Chart(reportChartCanvas, {
+        type: 'bar', // or 'pie'
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: `${type === 'expense' ? 'Expenses' : 'Income'} by Category`,
+                data: chartData,
+                backgroundColor: type === 'expense' ? 'rgba(255, 99, 132, 0.6)' : 'rgba(75, 192, 192, 0.6)',
+                borderColor: type === 'expense' ? 'rgba(255, 99, 132, 1)' : 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Re-run initialization to apply changes
+init();
+
+</script>
